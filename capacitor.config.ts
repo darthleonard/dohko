@@ -1,9 +1,17 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'com.darthleonard.dokho',
   appName: 'dohko',
-  webDir: 'www'
+  webDir: 'www',
+  plugins: {
+    CapacitorSQLite: {
+      androidIsEncryption: true,
+      androidBiometric: {
+        biometricAuth: false
+      }
+    }
+  }
 };
 
 export default config;

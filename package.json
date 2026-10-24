@@ -1,15 +1,17 @@
 {
   "name": "dohko",
   "version": "0.0.1",
-  "author": "Ionic Framework",
-  "homepage": "https://ionicframework.com/",
+  "author": "Leonardo Gonzalez",
+  "homepage": "https://darthleonard.wordpress.com/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "run.android": "ionic build && ionic cap sync android && ionic cap open android",
+    "postinstall": "node -e \"const fs=require('fs'); const p='node_modules/@angular/cli/src/utilities/node-version.js'; if(fs.existsSync(p)){ let c=fs.readFileSync(p,'utf8'); if(!c.includes('22.13.0')){ c=c.replace('\\'^22.22.3', '\\'^22.13.0 || ^22.22.3'); fs.writeFileSync(p, c); } } const u='node_modules/undici/lib/interceptor/decompress.js'; if(fs.existsSync(u)){ let cu=fs.readFileSync(u,'utf8'); if(!cu.includes('typeof createZstdDecompress')){ cu=cu.replace('zstd: createZstdDecompress.bind(null, { params: { [constants.ZSTD_d_windowLogMax]: 23 } })', 'zstd: typeof createZstdDecompress === \\'function\\' ? createZstdDecompress.bind(null, { params: { [constants.ZSTD_d_windowLogMax]: 23 } }) : undefined'); fs.writeFileSync(u, cu); } }\""
   },
   "private": true,
   "dependencies": {
@@ -20,12 +22,19 @@
     "@angular/platform-browser": "22.2.3",
     "@angular/platform-browser-dynamic": "22.2.3",
     "@angular/router": "22.2.3",
+    "@capacitor-community/sqlite": "^8.1.1",
+    "@capacitor/android": "^8.5.3",
     "@capacitor/app": "8.1.2",
+    "@capacitor/clipboard": "^8.0.1",
     "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "^8.1.5",
     "@capacitor/haptics": "8.0.2",
     "@capacitor/keyboard": "8.0.6",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/share": "^8.0.3",
     "@capacitor/status-bar": "8.0.4",
     "@ionic/angular": "^9.0.0",
+    "hash-wasm": "^4.12.0",
     "ionicons": "^8.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
@@ -44,5 +53,5 @@
     "typescript-eslint": "^8.61.0",
     "vitest": "~5.0.5"
   },
-  "description": "An Ionic project"
+  "description": "Private Password Vault"
 }

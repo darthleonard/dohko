@@ -1,0 +1,25 @@
+.privacy-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999999;
+  background-color: var(--ion-background-color, #121212);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--ion-color-medium, #888);
+
+  ion-icon {
+    font-size: 64px;
+    margin-bottom: 12px;
+    color: var(--ion-color-primary, #3880ff);
+  }
+
+  p {
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+}
