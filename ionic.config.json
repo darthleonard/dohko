@@ -1,0 +1,7 @@
+{
+  "name": "dohko",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
