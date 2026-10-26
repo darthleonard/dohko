@@ -1,0 +1,38 @@
+.unlock-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding-top: 30px;
+}
+
+.header-icon {
+  margin-bottom: 24px;
+}
+
+.hero-icon {
+  font-size: 72px;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--ion-color-medium);
+  margin-top: 4px;
+}
+
+.error-text {
+  padding: 8px 12px;
+  background: var(--ion-color-danger-tint, #ffebee);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.loading-state p {
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+  margin-top: 8px;
+}
+
+.recovery-section {
+  margin-top: 20px;
+  border-top: 1px solid var(--ion-color-light, #eee);
+  padding-top: 10px;
+}

@@ -1,0 +1,125 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Dohko Password Manager</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="onboarding-container">
+    <div class="header-icon ion-text-center">
+      <ion-icon
+        name="shield-checkmark"
+        color="primary"
+        class="hero-icon"
+      ></ion-icon>
+      <h2>Welcome to Dohko</h2>
+      <p class="subtitle">Secure, Offline-First Password Vault</p>
+    </div>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Create Master Password</ion-card-title>
+        <ion-card-subtitle
+          >Protect your local encrypted database</ion-card-subtitle
+        >
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="security-notice">
+          <ion-icon name="warning" style="color: #856404"></ion-icon>
+          <div>
+            <strong>Important:</strong> Your master password encrypts your vault
+            with Argon2id and AES-256-GCM. It is never stored or transmitted. If
+            lost, your vault <em>cannot</em> be recovered without an encrypted
+            backup.
+          </div>
+        </div>
+
+        <form (ngSubmit)="onCreateVault()" #vaultForm="ngForm">
+          <ion-item class="ion-margin-top">
+            <ion-input
+              [type]="showPassword ? 'text' : 'password'"
+              label="Master Password"
+              labelPlacement="floating"
+              [(ngModel)]="password"
+              name="password"
+              required
+              minlength="8"
+              placeholder="Minimum 8 characters"
+              [disabled]="isLoading"
+            >
+              <ion-button
+                fill="clear"
+                slot="end"
+                type="button"
+                (click)="showPassword = !showPassword"
+                aria-label="Toggle password visibility"
+              >
+                <ion-icon
+                  [name]="showPassword ? 'eye-off' : 'eye'"
+                  slot="icon-only"
+                ></ion-icon>
+              </ion-button>
+            </ion-input>
+          </ion-item>
+
+          <ion-item class="ion-margin-top">
+            <ion-input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              label="Confirm Master Password"
+              labelPlacement="floating"
+              [(ngModel)]="confirmPassword"
+              name="confirmPassword"
+              required
+              placeholder="Re-enter master password"
+              [disabled]="isLoading"
+            >
+              <ion-button
+                fill="clear"
+                slot="end"
+                type="button"
+                (click)="showConfirmPassword = !showConfirmPassword"
+                aria-label="Toggle confirm password visibility"
+              >
+                <ion-icon
+                  [name]="showConfirmPassword ? 'eye-off' : 'eye'"
+                  slot="icon-only"
+                ></ion-icon>
+              </ion-button>
+            </ion-input>
+          </ion-item>
+
+          @if (errorMessage) {
+            <div class="error-text ion-margin-top">
+              <ion-text color="danger">{{ errorMessage }}</ion-text>
+            </div>
+          }
+
+          @if (isLoading) {
+            <div class="loading-state ion-margin-top ion-text-center">
+              <ion-spinner name="crescent" color="primary"></ion-spinner>
+              <p>
+                Deriving Argon2id keys & initializing encrypted SQLCipher
+                database...
+              </p>
+              <ion-progress-bar
+                type="indeterminate"
+                color="primary"
+              ></ion-progress-bar>
+            </div>
+          }
+
+          <ion-button
+            expand="block"
+            type="submit"
+            class="ion-margin-top"
+            [disabled]="isLoading || !isFormValid()"
+          >
+            <ion-icon name="lock-closed" slot="start"></ion-icon>
+            Create Encrypted Vault
+          </ion-button>
+        </form>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
