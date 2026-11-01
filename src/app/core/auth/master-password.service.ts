@@ -66,23 +66,74 @@ export class MasterPasswordService {
    * Verifies master password and unwraps the vault's Data Encryption Key (DEK).
    */
   public async verifyAndUnlock(password: string): Promise<Uint8Array> {
-    const metadata = await this.keyManagement.getMetadata();
-    if (!metadata) {
-      throw new Error('No vault found. Please create a new vault first.');
-    }
-
-    // 1. Derive KEK from entered password and stored salt
-    const kek = await this.keyDerivation.deriveKey(password, metadata.kdf);
+    const totalLabel = `[MasterPasswordService] Total verifyAndUnlock`;
+    console.time(totalLabel);
+    console.log(`[MasterPasswordService] Starting verifyAndUnlock at ${new Date().toISOString()}`);
 
     try {
-      // 2. Unwrap DEK with AES-256-GCM authenticated decryption
-      const dek = await this.keyManagement.unwrapDek(metadata.wrappedDek, kek);
-      return dek;
-    } catch {
-      throw new Error('Incorrect master password. Access denied.');
+      const stageMeta = `[MasterPasswordService] Stage: Reading vault metadata`;
+      console.time(stageMeta);
+      console.log(`[MasterPasswordService] Starting reading vault metadata at ${new Date().toISOString()}`);
+      let metadata;
+      try {
+        metadata = await this.keyManagement.getMetadata();
+        console.log(`[MasterPasswordService] Completed reading vault metadata at ${new Date().toISOString()}`);
+      } catch (err) {
+        console.error(`[MasterPasswordService] Error reading vault metadata:`, err);
+        throw err;
+      } finally {
+        console.timeEnd(stageMeta);
+      }
+
+      if (!metadata) {
+        throw new Error('No vault found. Please create a new vault first.');
+      }
+
+      // 1. Derive KEK from entered password and stored salt
+      const stageKdf = `[MasterPasswordService] Stage: Argon2id key derivation`;
+      console.time(stageKdf);
+      console.log(`[MasterPasswordService] Starting Argon2id key derivation at ${new Date().toISOString()}`);
+      let kek: Uint8Array;
+      try {
+        kek = await this.keyDerivation.deriveKey(password, metadata.kdf);
+        console.log(`[MasterPasswordService] Completed Argon2id key derivation at ${new Date().toISOString()}`);
+      } catch (err) {
+        console.error(`[MasterPasswordService] Error in Argon2id key derivation:`, err);
+        throw err;
+      } finally {
+        console.timeEnd(stageKdf);
+      }
+
+      try {
+        // 2. Unwrap DEK with AES-256-GCM authenticated decryption
+        const stageUnwrap = `[MasterPasswordService] Stage: AES-GCM DEK unwrapping`;
+        console.time(stageUnwrap);
+        console.log(`[MasterPasswordService] Starting AES-GCM DEK unwrapping at ${new Date().toISOString()}`);
+        let dek: Uint8Array;
+        try {
+          dek = await this.keyManagement.unwrapDek(metadata.wrappedDek, kek);
+          console.log(`[MasterPasswordService] Completed AES-GCM DEK unwrapping at ${new Date().toISOString()}`);
+          return dek;
+        } catch (unwrapErr) {
+          // AES-GCM authentication failure is the canonical signal for a wrong password.
+          // Any other unexpected error is re-thrown as-is so it surfaces clearly in logs.
+          const errMsg = unwrapErr instanceof Error ? unwrapErr.message : String(unwrapErr);
+          if (errMsg.includes('Authentication tag mismatch') || errMsg.includes('Decryption failed')) {
+            console.error(`[MasterPasswordService] DEK unwrap failed — master password is incorrect.`);
+            throw new Error('Incorrect master password. Access denied.');
+          }
+          console.error(`[MasterPasswordService] Unexpected error in AES-GCM DEK unwrapping:`, unwrapErr);
+          throw unwrapErr;
+        } finally {
+          console.timeEnd(stageUnwrap);
+        }
+      } finally {
+        // Wipe ephemeral KEK from memory
+        this.cryptoService.wipeBytes(kek);
+      }
     } finally {
-      // Wipe ephemeral KEK from memory
-      this.cryptoService.wipeBytes(kek);
+      console.timeEnd(totalLabel);
+      console.log(`[MasterPasswordService] Finished verifyAndUnlock at ${new Date().toISOString()}`);
     }
   }
 

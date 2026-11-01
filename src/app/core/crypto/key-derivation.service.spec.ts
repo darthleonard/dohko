@@ -19,8 +19,8 @@ describe('KeyDerivationService', () => {
     const params = service.createDefaultParameters();
     expect(params.algorithm).toBe('Argon2id');
     expect(params.version).toBe(1);
-    expect(params.memorySize).toBe(65536);
-    expect(params.iterations).toBe(3);
+    expect(params.memorySize).toBe(47104);
+    expect(params.iterations).toBe(1);
     expect(params.parallelism).toBe(1);
     expect(params.hashLength).toBe(32);
     expect(params.salt).toBeDefined();

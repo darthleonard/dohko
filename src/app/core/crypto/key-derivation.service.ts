@@ -19,14 +19,18 @@ export interface KdfParameters {
  * Security Rationale & Parameter Benchmarks:
  * - Algorithm: Argon2id (hybrid data-dependent & data-independent memory addressing),
  *   protecting against both side-channel and GPU-accelerated brute-force attacks.
- * - Memory: 65,536 KiB (64 MiB). Based on RFC 9106 and OWASP recommendations.
- *   On representative Android devices running Chromium/Blink WebView with WebAssembly,
- *   64 MiB derivation executes in ~350ms to 500ms, effectively impeding offline dictionary
- *   attacks while maintaining a responsive user unlock experience.
- * - Iterations: 3 passes over memory, ensuring sufficient diffusion.
+ * - Memory: 47,104 KiB (~46 MiB). OWASP-compliant (m=47104, t=1, p=1 profile).
+ *   Reduced from 64 MiB to target ~300–500ms on mid-range Android WebAssembly runtimes
+ *   while remaining resistant to offline GPU brute-force attacks.
+ * - Iterations: 1 pass. With 46 MiB of memory, a single pass provides sufficient
+ *   memory-hardness per the OWASP Password Storage Cheat Sheet (m=47104, t=1 is listed
+ *   as an equivalent configuration to m=19456, t=2).
  * - Parallelism: 1 lane, tailored for single-worker/single-thread WebAssembly execution.
  * - Salt: 16 bytes (128 bits) of cryptographically secure random entropy.
  * - Output: 32 bytes (256 bits) Key Encryption Key (KEK).
+ *
+ * NOTE: Existing vaults are unaffected — KDF parameters are stored per-vault in metadata
+ * and read back verbatim at unlock time. Only newly created vaults use these defaults.
  *
  * The parameters are versioned (version: 1) allowing seamless future parameter upgrades.
  */
@@ -36,8 +40,8 @@ export interface KdfParameters {
 export class KeyDerivationService {
 
   public static readonly CURRENT_VERSION = 1;
-  public static readonly DEFAULT_MEMORY_KIB = 65536; // 64 MB
-  public static readonly DEFAULT_ITERATIONS = 3;
+  public static readonly DEFAULT_MEMORY_KIB = 47104; // 46 MiB — OWASP m=47104,t=1 profile
+  public static readonly DEFAULT_ITERATIONS = 1;
   public static readonly DEFAULT_PARALLELISM = 1;
   public static readonly DEFAULT_KEY_LENGTH = 32; // 256 bits
   public static readonly SALT_LENGTH_BYTES = 16; // 128 bits
@@ -77,18 +81,32 @@ export class KeyDerivationService {
       throw new Error('Salt must be at least 16 bytes');
     }
 
-    // hash-wasm argon2id accepts Uint8Array salt and returns Uint8Array when outputType is 'binary'
-    const derived = await argon2id({
-      password,
-      salt: saltBytes,
-      iterations: params.iterations,
-      memorySize: params.memorySize,
-      hashLength: params.hashLength,
-      parallelism: params.parallelism,
-      outputType: 'binary'
-    });
+    console.log(`[KeyDerivationService] KDF parameters: algorithm=${params.algorithm}, version=${params.version}, memorySize=${params.memorySize}, iterations=${params.iterations}, parallelism=${params.parallelism}, hashLength=${params.hashLength}`);
 
-    return derived;
+    const timerLabel = `[KeyDerivationService] argon2id execution`;
+    console.time(timerLabel);
+    console.log(`[KeyDerivationService] Starting argon2id() at ${new Date().toISOString()}`);
+
+    try {
+      // hash-wasm argon2id accepts Uint8Array salt and returns Uint8Array when outputType is 'binary'
+      const derived = await argon2id({
+        password,
+        salt: saltBytes,
+        iterations: params.iterations,
+        memorySize: params.memorySize,
+        hashLength: params.hashLength,
+        parallelism: params.parallelism,
+        outputType: 'binary'
+      });
+
+      console.log(`[KeyDerivationService] Completed argon2id() at ${new Date().toISOString()}`);
+      return derived;
+    } catch (err) {
+      console.error(`[KeyDerivationService] Error in argon2id():`, err);
+      throw err;
+    } finally {
+      console.timeEnd(timerLabel);
+    }
   }
 
   public bytesToBase64(bytes: Uint8Array): string {

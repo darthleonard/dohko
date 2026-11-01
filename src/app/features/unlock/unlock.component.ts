@@ -77,16 +77,63 @@ export class UnlockComponent implements OnInit {
       return;
     }
 
+    // Trim surrounding whitespace that may be silently injected by Android IME / autocorrect.
+    const trimmedPassword = this.password.trim();
+    if (!trimmedPassword) {
+      return;
+    }
+
     this.errorMessage = '';
     this.isLoading = true;
 
+    const totalLabel = `[UnlockFlow] Total onUnlockWithPassword`;
+    console.time(totalLabel);
+    console.log(`[UnlockFlow] Starting master-password unlock flow at ${new Date().toISOString()}`);
+
     try {
-      const dek = await this.masterPasswordService.verifyAndUnlock(
-        this.password,
-      );
+      const stage1 = `[UnlockFlow] Stage 1: MasterPasswordService.verifyAndUnlock`;
+      console.time(stage1);
+      console.log(`[UnlockFlow] Starting Stage 1: verifyAndUnlock at ${new Date().toISOString()}`);
+      let dek: Uint8Array;
+      try {
+        dek = await this.masterPasswordService.verifyAndUnlock(
+          trimmedPassword,
+        );
+        console.log(`[UnlockFlow] Completed Stage 1: verifyAndUnlock at ${new Date().toISOString()}`);
+      } catch (err) {
+        console.error(`[UnlockFlow] Error in Stage 1: verifyAndUnlock:`, err);
+        throw err;
+      } finally {
+        console.timeEnd(stage1);
+      }
+
       this.password = '';
-      await this.sessionService.unlock(dek);
-      await this.router.navigate(['/credentials'], { replaceUrl: true });
+
+      const stage2 = `[UnlockFlow] Stage 2: VaultSessionService.unlock`;
+      console.time(stage2);
+      console.log(`[UnlockFlow] Starting Stage 2: sessionService.unlock at ${new Date().toISOString()}`);
+      try {
+        await this.sessionService.unlock(dek);
+        console.log(`[UnlockFlow] Completed Stage 2: sessionService.unlock at ${new Date().toISOString()}`);
+      } catch (err) {
+        console.error(`[UnlockFlow] Error in Stage 2: sessionService.unlock:`, err);
+        throw err;
+      } finally {
+        console.timeEnd(stage2);
+      }
+
+      const stage3 = `[UnlockFlow] Stage 3: router.navigate to /credentials`;
+      console.time(stage3);
+      console.log(`[UnlockFlow] Starting Stage 3: router.navigate at ${new Date().toISOString()}`);
+      try {
+        await this.router.navigate(['/credentials'], { replaceUrl: true });
+        console.log(`[UnlockFlow] Completed Stage 3: router.navigate at ${new Date().toISOString()}`);
+      } catch (err) {
+        console.error(`[UnlockFlow] Error in Stage 3: router.navigate:`, err);
+        throw err;
+      } finally {
+        console.timeEnd(stage3);
+      }
     } catch (err: unknown) {
       this.errorMessage =
         err instanceof Error
@@ -95,6 +142,8 @@ export class UnlockComponent implements OnInit {
       console.error('Unlock error:', err);
     } finally {
       this.isLoading = false;
+      console.timeEnd(totalLabel);
+      console.log(`[UnlockFlow] Finished master-password unlock flow at ${new Date().toISOString()}`);
     }
   }
 

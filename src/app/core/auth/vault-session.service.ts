@@ -13,14 +13,6 @@ import { ClipboardService } from '../security/clipboard.service';
  *
  * Centralized vault session manager controlling unlock state, cryptographic key lifecycle,
  * and automatic locking.
- *
- * Security Rationale:
- * - Keeps the 256-bit DEK strictly in memory during an active unlocked session.
- * - Explicitly wipes key memory buffers (fill with 0) and closes the encrypted database
- *   immediately upon locking.
- * - Coordinates inactivity monitoring, auto-locking, and privacy concealment.
- * - Maintains a session generation ID to invalidate and discard any pending/stale
- *   asynchronous operations executed prior to locking.
  */
 @Injectable({
   providedIn: 'root'
@@ -66,17 +58,38 @@ export class VaultSessionService {
    * Activates vault session with the verified DEK.
    */
   public async unlock(dek: Uint8Array): Promise<void> {
-    this.sessionGeneration++;
-    this.activeDek = new Uint8Array(dek);
+    const totalLabel = `[VaultSessionService] Total unlock`;
+    console.time(totalLabel);
+    console.log(`[VaultSessionService] Starting unlock at ${new Date().toISOString()}`);
 
-    // Open encrypted SQLCipher database with hex key derived from DEK
-    const sqlCipherKey = this.keyManagement.getSqlCipherKey(this.activeDek);
-    await this.dbService.openDatabase(sqlCipherKey);
+    try {
+      this.sessionGeneration++;
+      this.activeDek = new Uint8Array(dek);
 
-    this.isUnlockedSubject.next(true);
+      // Open encrypted SQLCipher database with hex key derived from DEK
+      const sqlCipherKey = this.keyManagement.getSqlCipherKey(this.activeDek);
 
-    // Start auto-lock monitoring
-    this.autoLock.startMonitoring(() => this.lock('Inactivity auto-lock triggered'));
+      const dbOpenTimer = `[VaultSessionService] dbService.openDatabase`;
+      console.time(dbOpenTimer);
+      console.log(`[VaultSessionService] Starting dbService.openDatabase at ${new Date().toISOString()}`);
+      try {
+        await this.dbService.openDatabase(sqlCipherKey);
+        console.log(`[VaultSessionService] Completed dbService.openDatabase at ${new Date().toISOString()}`);
+      } catch (err) {
+        console.error(`[VaultSessionService] Error in dbService.openDatabase:`, err);
+        throw err;
+      } finally {
+        console.timeEnd(dbOpenTimer);
+      }
+
+      this.isUnlockedSubject.next(true);
+
+      // Start auto-lock monitoring
+      this.autoLock.startMonitoring(() => this.lock('Inactivity auto-lock triggered'));
+    } finally {
+      console.timeEnd(totalLabel);
+      console.log(`[VaultSessionService] Finished unlock at ${new Date().toISOString()}`);
+    }
   }
 
   /**

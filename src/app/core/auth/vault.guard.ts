@@ -15,16 +15,21 @@ export class VaultUnlockedGuard implements CanActivate {
   ) {}
 
   public async canActivate(): Promise<boolean | UrlTree> {
-    const hasVault = await this.keyManagement.hasVault();
-    if (!hasVault) {
+    try {
+      const hasVault = await this.keyManagement.hasVault();
+      if (!hasVault) {
+        return this.router.parseUrl('/onboarding');
+      }
+
+      if (!this.sessionService.isUnlocked()) {
+        return this.router.parseUrl('/unlock');
+      }
+
+      return true;
+    } catch (err) {
+      console.error('[VaultUnlockedGuard] Guard error, redirecting to onboarding:', err);
       return this.router.parseUrl('/onboarding');
     }
-
-    if (!this.sessionService.isUnlocked()) {
-      return this.router.parseUrl('/unlock');
-    }
-
-    return true;
   }
 }
 
@@ -40,16 +45,21 @@ export class VaultLockedGuard implements CanActivate {
   ) {}
 
   public async canActivate(): Promise<boolean | UrlTree> {
-    const hasVault = await this.keyManagement.hasVault();
-    if (!hasVault) {
+    try {
+      const hasVault = await this.keyManagement.hasVault();
+      if (!hasVault) {
+        return this.router.parseUrl('/onboarding');
+      }
+
+      if (this.sessionService.isUnlocked()) {
+        return this.router.parseUrl('/credentials');
+      }
+
+      return true;
+    } catch (err) {
+      console.error('[VaultLockedGuard] Guard error, redirecting to onboarding:', err);
       return this.router.parseUrl('/onboarding');
     }
-
-    if (this.sessionService.isUnlocked()) {
-      return this.router.parseUrl('/credentials');
-    }
-
-    return true;
   }
 }
 
@@ -65,14 +75,19 @@ export class OnboardingGuard implements CanActivate {
   ) {}
 
   public async canActivate(): Promise<boolean | UrlTree> {
-    const hasVault = await this.keyManagement.hasVault();
-    if (hasVault) {
-      if (this.sessionService.isUnlocked()) {
-        return this.router.parseUrl('/credentials');
+    try {
+      const hasVault = await this.keyManagement.hasVault();
+      if (hasVault) {
+        if (this.sessionService.isUnlocked()) {
+          return this.router.parseUrl('/credentials');
+        }
+        return this.router.parseUrl('/unlock');
       }
-      return this.router.parseUrl('/unlock');
-    }
 
-    return true;
+      return true;
+    } catch (err) {
+      console.error('[OnboardingGuard] Guard error, allowing onboarding:', err);
+      return true;
+    }
   }
 }
