@@ -49,21 +49,26 @@ export class DatabaseService {
     }
 
     const isNative = Capacitor.isNativePlatform();
+    let clearSecretOnFailure = false;
 
     try {
       if (isNative) {
-        // Supply key to SQLCipher for connection initialization
-        const timerSecret = `[DatabaseService] CapacitorSQLite.setEncryptionSecret`;
-        console.time(timerSecret);
-        console.log(`[DatabaseService] Starting setEncryptionSecret at ${new Date().toISOString()}`);
-        try {
-          await CapacitorSQLite.setEncryptionSecret({ passphrase: sqlCipherKey });
-          console.log(`[DatabaseService] Completed setEncryptionSecret at ${new Date().toISOString()}`);
-        } catch (err) {
-          console.error(`[DatabaseService] Error in setEncryptionSecret:`, err);
-          throw err;
-        } finally {
-          console.timeEnd(timerSecret);
+        const secretStatus = await CapacitorSQLite.isSecretStored();
+        if (secretStatus.result) {
+          const secretMatches = await CapacitorSQLite.checkEncryptionSecret({
+            passphrase: sqlCipherKey,
+          });
+          if (!secretMatches.result) {
+            throw new Error(
+              'The stored SQLCipher passphrase does not match the unlocked vault.',
+            );
+          }
+          clearSecretOnFailure = true;
+        } else {
+          clearSecretOnFailure = true;
+          await CapacitorSQLite.setEncryptionSecret({
+            passphrase: sqlCipherKey,
+          });
         }
 
         // Check if connection exists in connection pool
@@ -212,7 +217,7 @@ export class DatabaseService {
     } catch (err: unknown) {
       this.isOpen = false;
       this.dbConnection = null;
-      if (isNative) {
+      if (isNative && clearSecretOnFailure) {
         await CapacitorSQLite.clearEncryptionSecret().catch(() => {});
       }
       const message = err instanceof Error ? err.message : String(err);
