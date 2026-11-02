@@ -29,7 +29,7 @@ export class ClipboardService {
   /**
    * Copies a sensitive string to the system clipboard and schedules conditional clearing.
    */
-  public async copySensitive(value: string): Promise<void> {
+  public async copySensitive(value: string, sensitive = true): Promise<void> {
     if (!value) {
       return;
     }
@@ -37,7 +37,7 @@ export class ClipboardService {
     // Cancel existing timer if any
     this.cancelPendingClear();
 
-    await Clipboard.write({ string: value });
+    await Clipboard.write({ string: value, sensitive });
     this.lastCopiedSecret = value;
 
     const timeoutSeconds = await this.getTimeout();

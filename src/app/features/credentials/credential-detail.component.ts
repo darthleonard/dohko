@@ -90,7 +90,7 @@ export class CredentialDetailComponent implements OnInit {
   }
 
   public async onCopyUsername(): Promise<void> {
-    await this.clipboardService.copySensitive(this.credential.username);
+    await this.clipboardService.copySensitive(this.credential.username, false);
     const toast = await this.toastCtrl.create({
       message: 'Username copied to clipboard',
       duration: 2000,

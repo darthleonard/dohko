@@ -1,0 +1,70 @@
+diff --git a/node_modules/@capacitor/clipboard/android/src/main/java/com/capacitorjs/plugins/clipboard/Clipboard.java b/node_modules/@capacitor/clipboard/android/src/main/java/com/capacitorjs/plugins/clipboard/Clipboard.java
+index a485a05..a72be30 100644
+--- a/node_modules/@capacitor/clipboard/android/src/main/java/com/capacitorjs/plugins/clipboard/Clipboard.java
++++ b/node_modules/@capacitor/clipboard/android/src/main/java/com/capacitorjs/plugins/clipboard/Clipboard.java
+@@ -4,6 +4,8 @@ import android.content.ClipData;
+ import android.content.ClipDescription;
+ import android.content.ClipboardManager;
+ import android.content.Context;
++import android.os.Build;
++import android.os.PersistableBundle;
+ import com.getcapacitor.Logger;
+ 
+ public class Clipboard {
+@@ -25,11 +27,16 @@ public class Clipboard {
+      * @param content The content to be written to the clipboard.
+      * @return A response indicating the success status of the write request.
+      */
+-    public ClipboardWriteResponse write(String label, String content) {
++    public ClipboardWriteResponse write(String label, String content, boolean sensitive) {
+         ClipData data = ClipData.newPlainText(label, content);
+ 
+         if (data != null && clipboard != null) {
+             try {
++                if (sensitive && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
++                    PersistableBundle extras = new PersistableBundle();
++                    extras.putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true);
++                    data.getDescription().setExtras(extras);
++                }
+                 clipboard.setPrimaryClip(data);
+             } catch (Exception e) {
+                 Logger.error(TAG, e);
+diff --git a/node_modules/@capacitor/clipboard/android/src/main/java/com/capacitorjs/plugins/clipboard/ClipboardPlugin.java b/node_modules/@capacitor/clipboard/android/src/main/java/com/capacitorjs/plugins/clipboard/ClipboardPlugin.java
+index 2c5f8c0..27af0fb 100644
+--- a/node_modules/@capacitor/clipboard/android/src/main/java/com/capacitorjs/plugins/clipboard/ClipboardPlugin.java
++++ b/node_modules/@capacitor/clipboard/android/src/main/java/com/capacitorjs/plugins/clipboard/ClipboardPlugin.java
+@@ -22,15 +22,16 @@ public class ClipboardPlugin extends Plugin {
+         String imageVal = call.getString("image");
+         String urlVal = call.getString("url");
+         String label = call.getString("label");
++        boolean sensitive = call.getBoolean("sensitive", false);
+ 
+         ClipboardWriteResponse response;
+ 
+         if (strVal != null) {
+-            response = implementation.write(label, strVal);
++            response = implementation.write(label, strVal, sensitive);
+         } else if (imageVal != null) {
+-            response = implementation.write(label, imageVal);
++            response = implementation.write(label, imageVal, sensitive);
+         } else if (urlVal != null) {
+-            response = implementation.write(label, urlVal);
++            response = implementation.write(label, urlVal, sensitive);
+         } else {
+             call.reject("No data provided");
+             return;
+diff --git a/node_modules/@capacitor/clipboard/dist/esm/definitions.d.ts b/node_modules/@capacitor/clipboard/dist/esm/definitions.d.ts
+index a0148ae..d887eae 100644
+--- a/node_modules/@capacitor/clipboard/dist/esm/definitions.d.ts
++++ b/node_modules/@capacitor/clipboard/dist/esm/definitions.d.ts
+@@ -42,6 +42,10 @@ export interface WriteOptions {
+      * @since 1.0.0
+      */
+     label?: string;
++    /**
++     * Mark copied content as sensitive on Android 13 and later.
++     */
++    sensitive?: boolean;
+ }
+ /**
+  * Represents the data read from the clipboard.

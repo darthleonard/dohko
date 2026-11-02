@@ -192,7 +192,7 @@ export class CredentialListComponent implements OnInit, OnDestroy {
           text: 'Copy Username',
           icon: 'copy-outline',
           handler: async () => {
-            await this.clipboardService.copySensitive(cred.username);
+            await this.clipboardService.copySensitive(cred.username, false);
             const toast = await this.toastCtrl.create({
               message: 'Username copied',
               duration: 2000,

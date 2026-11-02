@@ -11,7 +11,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "run.android": "ionic build && ionic cap sync android && ionic cap open android",
-    "postinstall": "node -e \"const fs=require('fs'); const p='node_modules/@angular/cli/src/utilities/node-version.js'; if(fs.existsSync(p)){ let c=fs.readFileSync(p,'utf8'); if(!c.includes('22.13.0')){ c=c.replace('\\'^22.22.3', '\\'^22.13.0 || ^22.22.3'); fs.writeFileSync(p, c); } } const u='node_modules/undici/lib/interceptor/decompress.js'; if(fs.existsSync(u)){ let cu=fs.readFileSync(u,'utf8'); if(!cu.includes('typeof createZstdDecompress')){ cu=cu.replace('zstd: createZstdDecompress.bind(null, { params: { [constants.ZSTD_d_windowLogMax]: 23 } })', 'zstd: typeof createZstdDecompress === \\'function\\' ? createZstdDecompress.bind(null, { params: { [constants.ZSTD_d_windowLogMax]: 23 } }) : undefined'); fs.writeFileSync(u, cu); } }\""
+    "postinstall": "node -e \"const fs=require('fs'); const p='node_modules/@angular/cli/src/utilities/node-version.js'; if(fs.existsSync(p)){ let c=fs.readFileSync(p,'utf8'); if(!c.includes('22.13.0')){ c=c.replace('\\'^22.22.3', '\\'^22.13.0 || ^22.22.3'); fs.writeFileSync(p, c); } } const u='node_modules/undici/lib/interceptor/decompress.js'; if(fs.existsSync(u)){ let cu=fs.readFileSync(u,'utf8'); if(!cu.includes('typeof createZstdDecompress')){ cu=cu.replace('zstd: createZstdDecompress.bind(null, { params: { [constants.ZSTD_d_windowLogMax]: 23 } })', 'zstd: typeof createZstdDecompress === \\'function\\' ? createZstdDecompress.bind(null, { params: { [constants.ZSTD_d_windowLogMax]: 23 } }) : undefined'); fs.writeFileSync(u, cu); } }\" && patch-package"
   },
   "private": true,
   "dependencies": {
@@ -49,6 +49,7 @@
     "angular-eslint": "22.6.0",
     "eslint": "^10.10.0",
     "jsdom": "^30.1.0",
+    "patch-package": "^8.0.1",
     "typescript": "~6.0.0",
     "typescript-eslint": "^8.61.0",
     "vitest": "~5.0.5"
