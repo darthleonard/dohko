@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -26,8 +26,8 @@ export class OnboardingComponent {
   public confirmPassword = '';
   public showPassword = false;
   public showConfirmPassword = false;
-  public isLoading = false;
-  public errorMessage = '';
+  public isLoading = signal(false);
+  public errorMessage = signal('');
 
   constructor(
     private masterPasswordService: MasterPasswordService,
@@ -43,19 +43,19 @@ export class OnboardingComponent {
   }
 
   public async onCreateVault(): Promise<void> {
-    this.errorMessage = '';
+    this.errorMessage.set('');
 
     if (this.password.length < MasterPasswordService.MIN_PASSWORD_LENGTH) {
-      this.errorMessage = `Master password must be at least ${MasterPasswordService.MIN_PASSWORD_LENGTH} characters.`;
+      this.errorMessage.set(`Master password must be at least ${MasterPasswordService.MIN_PASSWORD_LENGTH} characters.`);
       return;
     }
 
     if (this.password !== this.confirmPassword) {
-      this.errorMessage = 'Passwords do not match.';
+      this.errorMessage.set('Passwords do not match.');
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     try {
       const dek = await this.masterPasswordService.setupVault(this.password);
@@ -73,10 +73,10 @@ export class OnboardingComponent {
       this.confirmPassword = '';
       await this.router.navigate(['/credentials'], { replaceUrl: true });
     } catch (err: unknown) {
-      this.errorMessage = err instanceof Error ? err.message : String(err);
+      this.errorMessage.set(err instanceof Error ? err.message : String(err));
       console.error('Error creating vault:', err);
     } finally {
-      this.isLoading = false;
+      this.isLoading.set(false);
     }
   }
 }

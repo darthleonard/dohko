@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -40,11 +40,11 @@ import { BackupService } from '../../core/backup/backup.service';
 })
 export class SettingsComponent implements OnInit {
 
-  public isBiometricAvailable = false;
-  public isBiometricEnrolled = false;
-  public autoLockTimeout = 300;
-  public visibilityTimeout = 30;
-  public clipboardTimeout = 30;
+  public isBiometricAvailable = signal(false);
+  public isBiometricEnrolled = signal(false);
+  public autoLockTimeout = signal(300);
+  public visibilityTimeout = signal(30);
+  public clipboardTimeout = signal(30);
 
   constructor(
     private biometricService: BiometricService,
@@ -77,18 +77,18 @@ export class SettingsComponent implements OnInit {
 
   private async loadSettings(): Promise<void> {
     const bio = await this.biometricService.getStatus();
-    this.isBiometricAvailable = bio.available;
-    this.isBiometricEnrolled = bio.enrolled;
+    this.isBiometricAvailable.set(bio.available);
+    this.isBiometricEnrolled.set(bio.enrolled);
 
-    this.autoLockTimeout = await this.autoLockService.getTimeout();
-    this.visibilityTimeout = await this.appPrivacyService.getVisibilityTimeout();
-    this.clipboardTimeout = await this.clipboardService.getTimeout();
+    this.autoLockTimeout.set(await this.autoLockService.getTimeout());
+    this.visibilityTimeout.set(await this.appPrivacyService.getVisibilityTimeout());
+    this.clipboardTimeout.set(await this.clipboardService.getTimeout());
   }
 
   public async onToggleBiometrics(event: any): Promise<void> {
     const enable = event.detail.checked;
 
-    if (enable && !this.isBiometricEnrolled) {
+    if (enable && !this.isBiometricEnrolled()) {
       const alert = await this.alertCtrl.create({
         header: 'Enable Biometric Unlock',
         message: 'Enter your master password to verify and enroll hardware-backed biometrics.',
@@ -104,14 +104,14 @@ export class SettingsComponent implements OnInit {
             text: 'Cancel',
             role: 'cancel',
             handler: () => {
-              this.isBiometricEnrolled = false;
+              this.isBiometricEnrolled.set(false);
             }
           },
           {
             text: 'Verify & Enroll',
             handler: async (data: { password?: string }) => {
               if (!data.password) {
-                this.isBiometricEnrolled = false;
+                this.isBiometricEnrolled.set(false);
                 return;
               }
               await this.performBiometricEnrollment(data.password);
@@ -121,9 +121,9 @@ export class SettingsComponent implements OnInit {
       });
       await alert.present();
 
-    } else if (!enable && this.isBiometricEnrolled) {
+    } else if (!enable && this.isBiometricEnrolled()) {
       await this.biometricService.disable();
-      this.isBiometricEnrolled = false;
+      this.isBiometricEnrolled.set(false);
       const toast = await this.toastCtrl.create({
         message: 'Biometric unlock disabled',
         duration: 2000,
@@ -143,7 +143,7 @@ export class SettingsComponent implements OnInit {
 
       const result = await this.biometricService.enroll(dek);
       if (result.success) {
-        this.isBiometricEnrolled = true;
+        this.isBiometricEnrolled.set(true);
         const toast = await this.toastCtrl.create({
           message: 'Biometric unlock enabled successfully!',
           duration: 2500,
@@ -152,7 +152,7 @@ export class SettingsComponent implements OnInit {
         });
         await toast.present();
       } else {
-        this.isBiometricEnrolled = false;
+        this.isBiometricEnrolled.set(false);
         if (!result.cancelled && result.error) {
           const toast = await this.toastCtrl.create({
             message: result.error,
@@ -165,7 +165,7 @@ export class SettingsComponent implements OnInit {
       }
     } catch (err: unknown) {
       await loading.dismiss();
-      this.isBiometricEnrolled = false;
+      this.isBiometricEnrolled.set(false);
       const msg = err instanceof Error ? err.message : String(err);
       const toast = await this.toastCtrl.create({
         message: msg,
@@ -178,15 +178,15 @@ export class SettingsComponent implements OnInit {
   }
 
   public async onAutoLockChange(): Promise<void> {
-    await this.autoLockService.setTimeout(this.autoLockTimeout);
+    await this.autoLockService.setTimeout(this.autoLockTimeout());
   }
 
   public async onVisibilityTimeoutChange(): Promise<void> {
-    await this.appPrivacyService.setVisibilityTimeout(this.visibilityTimeout);
+    await this.appPrivacyService.setVisibilityTimeout(this.visibilityTimeout());
   }
 
   public async onClipboardTimeoutChange(): Promise<void> {
-    await this.clipboardService.setTimeout(this.clipboardTimeout);
+    await this.clipboardService.setTimeout(this.clipboardTimeout());
   }
 
   public async onChangeMasterPassword(): Promise<void> {

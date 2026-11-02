@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   AlertController,
@@ -36,7 +36,20 @@ import { CredentialEditorComponent } from './credential-editor.component';
 })
 export class CredentialDetailComponent implements OnInit {
 
-  @Input() public credential!: Credential;
+  private credentialState = signal<Credential | null>(null);
+
+  @Input()
+  public set credential(value: Credential) {
+    this.credentialState.set(value);
+  }
+
+  public get credential(): Credential {
+    const credential = this.credentialState();
+    if (!credential) {
+      throw new Error('Credential detail requires a credential input.');
+    }
+    return credential;
+  }
 
   constructor(
     private modalCtrl: ModalController,

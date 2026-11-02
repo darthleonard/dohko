@@ -22,12 +22,12 @@
         <p>Android Keystore hardware-backed unlock</p>
       </ion-label>
       <ion-toggle
-        [checked]="isBiometricEnrolled"
-        [disabled]="!isBiometricAvailable"
+        [checked]="isBiometricEnrolled()"
+        [disabled]="!isBiometricAvailable()"
         (ionChange)="onToggleBiometrics($event)"
       ></ion-toggle>
     </ion-item>
-    <ion-note *ngIf="!isBiometricAvailable" color="medium" class="setting-note ion-padding-start">
+    <ion-note *ngIf="!isBiometricAvailable()" color="medium" class="setting-note ion-padding-start">
       Biometrics not available or not enrolled on this device.
     </ion-note>
 
@@ -38,7 +38,7 @@
         <h3>Vault Auto-Lock</h3>
         <p>Lock after inactivity</p>
       </ion-label>
-      <ion-select [(ngModel)]="autoLockTimeout" (ionChange)="onAutoLockChange()">
+      <ion-select [ngModel]="autoLockTimeout()" (ngModelChange)="autoLockTimeout.set($event)" (ionChange)="onAutoLockChange()">
         <ion-select-option [value]="60">1 minute</ion-select-option>
         <ion-select-option [value]="120">2 minutes</ion-select-option>
         <ion-select-option [value]="300">5 minutes</ion-select-option>
@@ -54,7 +54,7 @@
         <h3>Password Visibility</h3>
         <p>Auto-hide revealed passwords</p>
       </ion-label>
-      <ion-select [(ngModel)]="visibilityTimeout" (ionChange)="onVisibilityTimeoutChange()">
+      <ion-select [ngModel]="visibilityTimeout()" (ngModelChange)="visibilityTimeout.set($event)" (ionChange)="onVisibilityTimeoutChange()">
         <ion-select-option [value]="10">10 seconds</ion-select-option>
         <ion-select-option [value]="30">30 seconds</ion-select-option>
         <ion-select-option [value]="60">60 seconds</ion-select-option>
@@ -68,7 +68,7 @@
         <h3>Clipboard Auto-Clear</h3>
         <p>Clear copied password</p>
       </ion-label>
-      <ion-select [(ngModel)]="clipboardTimeout" (ionChange)="onClipboardTimeoutChange()">
+      <ion-select [ngModel]="clipboardTimeout()" (ngModelChange)="clipboardTimeout.set($event)" (ionChange)="onClipboardTimeoutChange()">
         <ion-select-option [value]="15">15 seconds</ion-select-option>
         <ion-select-option [value]="30">30 seconds</ion-select-option>
         <ion-select-option [value]="60">60 seconds</ion-select-option>

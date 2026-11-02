@@ -36,8 +36,8 @@ export class UnlockComponent implements OnInit {
   public password = '';
   public showPassword = false;
   public isLoading = signal(false);
-  public errorMessage = '';
-  public bioStatus: BiometricStatus | null = null;
+  public errorMessage = signal('');
+  public bioStatus = signal<BiometricStatus | null>(null);
 
   constructor(
     private masterPasswordService: MasterPasswordService,
@@ -61,7 +61,7 @@ export class UnlockComponent implements OnInit {
 
   public async ngOnInit(): Promise<void> {
     await this.checkBiometrics();
-    if (this.bioStatus?.enrolled) {
+    if (this.bioStatus()?.enrolled) {
       setTimeout(() => {
         this.onUnlockWithBiometrics();
       }, 300);
@@ -69,7 +69,7 @@ export class UnlockComponent implements OnInit {
   }
 
   private async checkBiometrics(): Promise<void> {
-    this.bioStatus = await this.biometricService.getStatus();
+    this.bioStatus.set(await this.biometricService.getStatus());
   }
 
   public async onUnlockWithPassword(): Promise<void> {
@@ -83,7 +83,7 @@ export class UnlockComponent implements OnInit {
       return;
     }
 
-    this.errorMessage = '';
+    this.errorMessage.set('');
     this.isLoading.set(true);
 
     try {
@@ -94,17 +94,18 @@ export class UnlockComponent implements OnInit {
       await this.sessionService.unlock(dek);
       await this.router.navigate(['/credentials'], { replaceUrl: true });
     } catch (err: unknown) {
-      this.errorMessage =
+      this.errorMessage.set(
         err instanceof Error
           ? err.message
-          : 'Unlock failed. Incorrect password.';
+          : 'Unlock failed. Incorrect password.',
+      );
     } finally {
       this.isLoading.set(false);
     }
   }
 
   public async onUnlockWithBiometrics(): Promise<void> {
-    this.errorMessage = '';
+    this.errorMessage.set('');
     this.isLoading.set(true);
 
     try {
@@ -113,14 +114,17 @@ export class UnlockComponent implements OnInit {
         await this.sessionService.unlock(res.dek);
         await this.router.navigate(['/credentials'], { replaceUrl: true });
       } else if (res.invalidated) {
-        this.errorMessage =
-          'Biometric credentials changed on device. Master password required.';
+        this.errorMessage.set(
+          'Biometric credentials changed on device. Master password required.',
+        );
         await this.checkBiometrics();
       } else if (!res.cancelled && res.error) {
-        this.errorMessage = res.error;
+        this.errorMessage.set(res.error);
       }
     } catch (err: unknown) {
-      this.errorMessage = err instanceof Error ? err.message : String(err);
+      this.errorMessage.set(
+        err instanceof Error ? err.message : String(err),
+      );
     } finally {
       this.isLoading.set(false);
     }

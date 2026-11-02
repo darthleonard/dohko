@@ -46,7 +46,7 @@
               required
               minlength="8"
               placeholder="Minimum 8 characters"
-              [disabled]="isLoading"
+              [disabled]="isLoading()"
             >
               <ion-button
                 fill="clear"
@@ -72,7 +72,7 @@
               name="confirmPassword"
               required
               placeholder="Re-enter master password"
-              [disabled]="isLoading"
+              [disabled]="isLoading()"
             >
               <ion-button
                 fill="clear"
@@ -89,13 +89,13 @@
             </ion-input>
           </ion-item>
 
-          @if (errorMessage) {
+          @if (errorMessage()) {
             <div class="error-text ion-margin-top">
-              <ion-text color="danger">{{ errorMessage }}</ion-text>
+              <ion-text color="danger">{{ errorMessage() }}</ion-text>
             </div>
           }
 
-          @if (isLoading) {
+          @if (isLoading()) {
             <div class="loading-state ion-margin-top ion-text-center">
               <ion-spinner name="crescent" color="primary"></ion-spinner>
               <p>
@@ -113,7 +113,7 @@
             expand="block"
             type="submit"
             class="ion-margin-top"
-            [disabled]="isLoading || !isFormValid()"
+            [disabled]="isLoading() || !isFormValid()"
           >
             <ion-icon name="lock-closed" slot="start"></ion-icon>
             Create Encrypted Vault

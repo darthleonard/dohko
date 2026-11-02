@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular/lazy';
@@ -28,8 +28,8 @@ export class CredentialEditorComponent implements OnInit {
   public notes = '';
   public showPassword = false;
   public isEditing = false;
-  public isSaving = false;
-  public errorMessage = '';
+  public isSaving = signal(false);
+  public errorMessage = signal('');
 
   constructor(
     private modalCtrl: ModalController,
@@ -69,12 +69,12 @@ export class CredentialEditorComponent implements OnInit {
   }
 
   public async onSave(): Promise<void> {
-    if (!this.isFormValid() || this.isSaving) {
+    if (!this.isFormValid() || this.isSaving()) {
       return;
     }
 
-    this.isSaving = true;
-    this.errorMessage = '';
+    this.isSaving.set(true);
+    this.errorMessage.set('');
 
     try {
       let saved: Credential;
@@ -101,9 +101,9 @@ export class CredentialEditorComponent implements OnInit {
 
       await this.modalCtrl.dismiss({ saved: true, credential: saved });
     } catch (err: unknown) {
-      this.errorMessage = err instanceof Error ? err.message : String(err);
+      this.errorMessage.set(err instanceof Error ? err.message : String(err));
     } finally {
-      this.isSaving = false;
+      this.isSaving.set(false);
     }
   }
 
