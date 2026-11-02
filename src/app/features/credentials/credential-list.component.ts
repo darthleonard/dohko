@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
 import {
   ActionSheetController,
   AlertController,
@@ -47,8 +46,6 @@ export class CredentialListComponent implements OnInit, OnDestroy {
 
   public credentials = signal<Credential[]>([]);
   public searchQuery = '';
-  private currentRevealedId: string | null = null;
-  private sub = new Subscription();
 
   constructor(
     private credentialRepo: CredentialRepository,
@@ -78,16 +75,10 @@ export class CredentialListComponent implements OnInit, OnDestroy {
   }
 
   public ngOnInit(): void {
-    this.sub.add(
-      this.appPrivacy.revealedCredentialId$.subscribe(id => {
-        this.currentRevealedId = id;
-      })
-    );
     this.loadCredentials();
   }
 
   public ngOnDestroy(): void {
-    this.sub.unsubscribe();
     this.appPrivacy.hideAllPasswords();
   }
 
@@ -107,7 +98,7 @@ export class CredentialListComponent implements OnInit, OnDestroy {
   }
 
   public isRevealed(id: string): boolean {
-    return this.currentRevealedId === id;
+    return this.appPrivacy.isPasswordRevealed(id);
   }
 
   public async onToggleView(cred: Credential): Promise<void> {

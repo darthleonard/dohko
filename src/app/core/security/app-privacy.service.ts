@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, signal } from '@angular/core';
 import { App } from '@capacitor/app';
 import { Preferences } from '@capacitor/preferences';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -24,8 +24,7 @@ export class AppPrivacyService {
   public isObscured$: Observable<boolean> = this.isObscuredSubject.asObservable();
 
   // Active revealed password identifier (credential ID)
-  private revealedCredentialIdSubject = new BehaviorSubject<string | null>(null);
-  public revealedCredentialId$: Observable<string | null> = this.revealedCredentialIdSubject.asObservable();
+  public revealedCredentialId = signal<string | null>(null);
 
   private visibilityTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -54,13 +53,13 @@ export class AppPrivacyService {
   public async revealPassword(credentialId: string): Promise<void> {
     this.hideAllPasswords();
 
-    this.revealedCredentialIdSubject.next(credentialId);
+    this.revealedCredentialId.set(credentialId);
     const timeoutSeconds = await this.getVisibilityTimeout();
 
     if (timeoutSeconds > 0) {
       this.visibilityTimer = setTimeout(() => {
         this.ngZone.run(() => {
-          if (this.revealedCredentialIdSubject.value === credentialId) {
+          if (this.revealedCredentialId() === credentialId) {
             this.hideAllPasswords();
           }
         });
@@ -76,14 +75,14 @@ export class AppPrivacyService {
       clearTimeout(this.visibilityTimer);
       this.visibilityTimer = null;
     }
-    this.revealedCredentialIdSubject.next(null);
+    this.revealedCredentialId.set(null);
   }
 
   /**
    * Returns whether a specific credential's password is currently revealed.
    */
   public isPasswordRevealed(credentialId: string): boolean {
-    return this.revealedCredentialIdSubject.value === credentialId;
+    return this.revealedCredentialId() === credentialId;
   }
 
   /**
