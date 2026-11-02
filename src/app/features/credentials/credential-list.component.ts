@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -45,7 +45,7 @@ import { CredentialDetailComponent } from './credential-detail.component';
 })
 export class CredentialListComponent implements OnInit, OnDestroy {
 
-  public credentials: Credential[] = [];
+  public credentials = signal<Credential[]>([]);
   public searchQuery = '';
   private currentRevealedId: string | null = null;
   private sub = new Subscription();
@@ -98,7 +98,7 @@ export class CredentialListComponent implements OnInit, OnDestroy {
       : await this.credentialRepo.getAll();
 
     if (this.sessionService.isSessionValid(generation)) {
-      this.credentials = list;
+      this.credentials.set(list);
     }
   }
 
