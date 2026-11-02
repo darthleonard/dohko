@@ -25,6 +25,10 @@
   font-size: 0.9rem;
 }
 
+.error-text ion-text {
+  color: white;
+}
+
 .loading-state p {
   font-size: 0.85rem;
   color: var(--ion-color-medium);

@@ -31,7 +31,7 @@
               name="password"
               required
               placeholder="Enter master password"
-              [disabled]="isLoading"
+              [disabled]="isLoading()"
             >
               <ion-button
                 fill="clear"
@@ -50,11 +50,11 @@
 
           @if (errorMessage) {
             <div class="error-text ion-margin-top">
-              <ion-text color="danger">{{ errorMessage }}</ion-text>
+              <ion-text>{{ errorMessage }}</ion-text>
             </div>
           }
 
-          @if (isLoading) {
+          @if (isLoading()) {
             <div class="loading-state ion-margin-top ion-text-center">
               <ion-spinner name="crescent" color="primary"></ion-spinner>
               <p>Verifying master key & decrypting vault...</p>
@@ -69,7 +69,7 @@
             expand="block"
             type="submit"
             class="ion-margin-top"
-            [disabled]="isLoading || !password"
+            [disabled]="isLoading() || !password"
           >
             <ion-icon name="lock-open" slot="start"></ion-icon>
             Unlock
@@ -83,7 +83,7 @@
                 type="button"
                 color="secondary"
                 (click)="onUnlockWithBiometrics()"
-                [disabled]="isLoading"
+                [disabled]="isLoading()"
               >
                 <ion-icon name="finger-print" slot="start"></ion-icon>
                 Unlock with Biometrics
