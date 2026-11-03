@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="primary">
-    <ion-title>Dohko Vault</ion-title>
+    <ion-title>{{ 'APP.VAULT_TITLE' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -8,15 +8,15 @@
   <div class="unlock-container">
     <div class="header-icon ion-text-center">
       <ion-icon name="lock-closed" color="primary" class="hero-icon"></ion-icon>
-      <h2>Vault Locked</h2>
-      <p class="subtitle">Enter your master password to decrypt</p>
+      <h2>{{ 'UNLOCK.VAULT_LOCKED' | translate }}</h2>
+      <p class="subtitle">{{ 'UNLOCK.ENTER_PASSWORD' | translate }}</p>
     </div>
 
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Unlock Vault</ion-card-title>
+        <ion-card-title>{{ 'UNLOCK.TITLE' | translate }}</ion-card-title>
         <ion-card-subtitle
-          >All data remains encrypted at rest</ion-card-subtitle
+          >{{ 'UNLOCK.ENCRYPTED_AT_REST' | translate }}</ion-card-subtitle
         >
       </ion-card-header>
 
@@ -25,12 +25,12 @@
           <ion-item class="ion-margin-top">
             <ion-input
               [type]="showPassword ? 'text' : 'password'"
-              label="Master Password"
+              [label]="'COMMON.MASTER_PASSWORD' | translate"
               labelPlacement="floating"
               [(ngModel)]="password"
               name="password"
               required
-              placeholder="Enter master password"
+              [placeholder]="'UNLOCK.ENTER_MASTER_PASSWORD' | translate"
               [disabled]="isLoading()"
             >
               <ion-button
@@ -38,7 +38,7 @@
                 slot="end"
                 type="button"
                 (click)="showPassword = !showPassword"
-                aria-label="Toggle password visibility"
+                [attr.aria-label]="'COMMON.TOGGLE_PASSWORD_VISIBILITY' | translate"
               >
                 <ion-icon
                   [name]="showPassword ? 'eye-off' : 'eye'"
@@ -57,7 +57,7 @@
           @if (isLoading()) {
             <div class="loading-state ion-margin-top ion-text-center">
               <ion-spinner name="crescent" color="primary"></ion-spinner>
-              <p>Verifying master key & decrypting vault...</p>
+              <p>{{ 'UNLOCK.DECRYPTING_VAULT' | translate }}</p>
               <ion-progress-bar
                 type="indeterminate"
                 color="primary"
@@ -72,7 +72,7 @@
             [disabled]="isLoading() || !password"
           >
             <ion-icon name="lock-open" slot="start"></ion-icon>
-            Unlock
+            {{ 'UNLOCK.TITLE' | translate }}
           </ion-button>
 
           @if (bioStatus()?.enrolled) {
@@ -86,7 +86,7 @@
                 [disabled]="isLoading()"
               >
                 <ion-icon name="finger-print" slot="start"></ion-icon>
-                Unlock with Biometrics
+                {{ 'UNLOCK.WITH_BIOMETRICS' | translate }}
               </ion-button>
             </div>
           }
@@ -99,7 +99,7 @@
             color="medium"
             (click)="onShowRecoveryHelp()"
           >
-            Forgot Password?
+            {{ 'UNLOCK.FORGOT_PASSWORD' | translate }}
           </ion-button>
         </div>
       </ion-card-content>

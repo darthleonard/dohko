@@ -4,6 +4,6 @@
   <!-- Immediate Background Privacy Concealment -->
   <div *ngIf="isObscured$ | async" class="privacy-overlay">
     <ion-icon name="shield-checkmark"></ion-icon>
-    <p>Dohko Vault Protected</p>
+    <p>{{ 'APP.VAULT_PROTECTED' | translate }}</p>
   </div>
 </ion-app>

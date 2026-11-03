@@ -23,13 +23,16 @@ import { Credential, CredentialRepository } from '../../core/database/credential
 import { AppPrivacyService } from '../../core/security/app-privacy.service';
 import { ClipboardService } from '../../core/security/clipboard.service';
 import { CredentialEditorComponent } from './credential-editor.component';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { LanguageService } from '../../core/i18n/language.service';
 
 @Component({
   selector: 'app-credential-detail',
   standalone: true,
   imports: [
     CommonModule,
-    IonicModule
+    IonicModule,
+    TranslatePipe
   ],
   templateUrl: './credential-detail.component.html',
   styleUrls: ['./credential-detail.component.css']
@@ -57,7 +60,8 @@ export class CredentialDetailComponent implements OnInit {
     private toastCtrl: ToastController,
     private credentialRepo: CredentialRepository,
     private appPrivacy: AppPrivacyService,
-    private clipboardService: ClipboardService
+    private clipboardService: ClipboardService,
+    private translate: LanguageService
   ) {
     addIcons({
       close,
@@ -92,7 +96,7 @@ export class CredentialDetailComponent implements OnInit {
   public async onCopyUsername(): Promise<void> {
     await this.clipboardService.copySensitive(this.credential.username, false);
     const toast = await this.toastCtrl.create({
-      message: 'Username copied to clipboard',
+      message: this.translate.instant('DETAIL.USERNAME_COPIED'),
       duration: 2000,
       position: 'bottom',
       color: 'dark'
@@ -103,10 +107,12 @@ export class CredentialDetailComponent implements OnInit {
   public async onCopyPassword(): Promise<void> {
     await this.clipboardService.copySensitive(this.credential.password);
     const timeout = await this.clipboardService.getTimeout();
-    const timeoutMsg = timeout > 0 ? ` (clears in ${timeout}s)` : '';
+    const message = timeout > 0
+      ? this.translate.instant('VAULT.PASSWORD_COPIED_TIMEOUT', { seconds: timeout })
+      : this.translate.instant('VAULT.PASSWORD_COPIED');
 
     const toast = await this.toastCtrl.create({
-      message: `Password copied to clipboard${timeoutMsg}`,
+      message,
       duration: 2500,
       position: 'bottom',
       color: 'success'
@@ -136,12 +142,14 @@ export class CredentialDetailComponent implements OnInit {
 
   public async onDelete(): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Delete Credential',
-      message: `Are you sure you want to delete "${this.credential.name}"? This action cannot be undone.`,
+      header: this.translate.instant('VAULT.DELETE_CREDENTIAL'),
+      message: this.translate.instant('DETAIL.CONFIRM_DELETE', {
+        name: this.credential.name,
+      }),
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Delete',
+          text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           handler: async () => {
             await this.credentialRepo.delete(this.credential.id);
@@ -161,7 +169,7 @@ export class CredentialDetailComponent implements OnInit {
 
   public formatDate(iso: string): string {
     try {
-      return new Date(iso).toLocaleString();
+      return new Date(iso).toLocaleString(this.translate.currentLang);
     } catch {
       return iso;
     }

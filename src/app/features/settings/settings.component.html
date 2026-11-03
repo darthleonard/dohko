@@ -3,23 +3,40 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/credentials"></ion-back-button>
     </ion-buttons>
-    <ion-title>Settings</ion-title>
+    <ion-title>{{ 'SETTINGS.TITLE' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
   <ion-list lines="inset">
+    <ion-list-header>
+      <ion-label>{{ 'SETTINGS.LANGUAGE' | translate }}</ion-label>
+    </ion-list-header>
+    <ion-item>
+      <ion-icon name="language-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>{{ 'SETTINGS.APP_LANGUAGE' | translate }}</ion-label>
+      <ion-select
+        [value]="languageService.currentLanguage()"
+        (ionChange)="onLanguageChange($event.detail.value)"
+        interface="popover"
+        aria-label="{{ 'SETTINGS.APP_LANGUAGE' | translate }}"
+      >
+        <ion-select-option value="en-US">English (US)</ion-select-option>
+        <ion-select-option value="es-MX">Español (México)</ion-select-option>
+      </ion-select>
+    </ion-item>
+
     <!-- Security & Auto-Lock -->
     <ion-list-header>
-      <ion-label>Security & Timers</ion-label>
+      <ion-label>{{ 'SETTINGS.SECURITY_TIMERS' | translate }}</ion-label>
     </ion-list-header>
 
     <!-- Biometric Unlock Toggle -->
     <ion-item>
       <ion-icon name="finger-print" slot="start" color="primary"></ion-icon>
       <ion-label>
-        <h3>Biometric Unlock</h3>
-        <p>Android Keystore hardware-backed unlock</p>
+        <h3>{{ 'SETTINGS.BIOMETRIC_UNLOCK' | translate }}</h3>
+        <p>{{ 'SETTINGS.BIOMETRIC_DESCRIPTION' | translate }}</p>
       </ion-label>
       <ion-toggle
         [checked]="isBiometricEnrolled()"
@@ -28,22 +45,22 @@
       ></ion-toggle>
     </ion-item>
     <ion-note *ngIf="!isBiometricAvailable()" color="medium" class="setting-note ion-padding-start">
-      Biometrics not available or not enrolled on this device.
+      {{ 'SETTINGS.BIOMETRIC_UNAVAILABLE' | translate }}
     </ion-note>
 
     <!-- Inactivity Auto-Lock -->
     <ion-item>
       <ion-icon name="timer-outline" slot="start" color="primary"></ion-icon>
       <ion-label>
-        <h3>Vault Auto-Lock</h3>
-        <p>Lock after inactivity</p>
+        <h3>{{ 'SETTINGS.VAULT_AUTO_LOCK' | translate }}</h3>
+        <p>{{ 'SETTINGS.LOCK_AFTER_INACTIVITY' | translate }}</p>
       </ion-label>
       <ion-select [ngModel]="autoLockTimeout()" (ngModelChange)="autoLockTimeout.set($event)" (ionChange)="onAutoLockChange()">
-        <ion-select-option [value]="60">1 minute</ion-select-option>
-        <ion-select-option [value]="120">2 minutes</ion-select-option>
-        <ion-select-option [value]="300">5 minutes</ion-select-option>
-        <ion-select-option [value]="600">10 minutes</ion-select-option>
-        <ion-select-option [value]="0">Never</ion-select-option>
+        <ion-select-option [value]="60">{{ 'SETTINGS.MINUTES' | translate: { count: 1 } }}</ion-select-option>
+        <ion-select-option [value]="120">{{ 'SETTINGS.MINUTES' | translate: { count: 2 } }}</ion-select-option>
+        <ion-select-option [value]="300">{{ 'SETTINGS.MINUTES' | translate: { count: 5 } }}</ion-select-option>
+        <ion-select-option [value]="600">{{ 'SETTINGS.MINUTES' | translate: { count: 10 } }}</ion-select-option>
+        <ion-select-option [value]="0">{{ 'SETTINGS.NEVER' | translate }}</ion-select-option>
       </ion-select>
     </ion-item>
 
@@ -51,13 +68,13 @@
     <ion-item>
       <ion-icon name="timer-outline" slot="start" color="primary"></ion-icon>
       <ion-label>
-        <h3>Password Visibility</h3>
-        <p>Auto-hide revealed passwords</p>
+        <h3>{{ 'SETTINGS.PASSWORD_VISIBILITY' | translate }}</h3>
+        <p>{{ 'SETTINGS.AUTO_HIDE_PASSWORDS' | translate }}</p>
       </ion-label>
       <ion-select [ngModel]="visibilityTimeout()" (ngModelChange)="visibilityTimeout.set($event)" (ionChange)="onVisibilityTimeoutChange()">
-        <ion-select-option [value]="10">10 seconds</ion-select-option>
-        <ion-select-option [value]="30">30 seconds</ion-select-option>
-        <ion-select-option [value]="60">60 seconds</ion-select-option>
+        <ion-select-option [value]="10">{{ 'SETTINGS.SECONDS' | translate: { count: 10 } }}</ion-select-option>
+        <ion-select-option [value]="30">{{ 'SETTINGS.SECONDS' | translate: { count: 30 } }}</ion-select-option>
+        <ion-select-option [value]="60">{{ 'SETTINGS.SECONDS' | translate: { count: 60 } }}</ion-select-option>
       </ion-select>
     </ion-item>
 
@@ -65,27 +82,27 @@
     <ion-item>
       <ion-icon name="timer-outline" slot="start" color="primary"></ion-icon>
       <ion-label>
-        <h3>Clipboard Auto-Clear</h3>
-        <p>Clear copied password</p>
+        <h3>{{ 'SETTINGS.CLIPBOARD_AUTO_CLEAR' | translate }}</h3>
+        <p>{{ 'SETTINGS.CLEAR_COPIED_PASSWORD' | translate }}</p>
       </ion-label>
       <ion-select [ngModel]="clipboardTimeout()" (ngModelChange)="clipboardTimeout.set($event)" (ionChange)="onClipboardTimeoutChange()">
-        <ion-select-option [value]="15">15 seconds</ion-select-option>
-        <ion-select-option [value]="30">30 seconds</ion-select-option>
-        <ion-select-option [value]="60">60 seconds</ion-select-option>
-        <ion-select-option [value]="0">Never</ion-select-option>
+        <ion-select-option [value]="15">{{ 'SETTINGS.SECONDS' | translate: { count: 15 } }}</ion-select-option>
+        <ion-select-option [value]="30">{{ 'SETTINGS.SECONDS' | translate: { count: 30 } }}</ion-select-option>
+        <ion-select-option [value]="60">{{ 'SETTINGS.SECONDS' | translate: { count: 60 } }}</ion-select-option>
+        <ion-select-option [value]="0">{{ 'SETTINGS.NEVER' | translate }}</ion-select-option>
       </ion-select>
     </ion-item>
 
     <!-- Master Password Management -->
     <ion-list-header class="ion-margin-top">
-      <ion-label>Vault Management</ion-label>
+      <ion-label>{{ 'SETTINGS.VAULT_MANAGEMENT' | translate }}</ion-label>
     </ion-list-header>
 
     <ion-item button (click)="onChangeMasterPassword()">
       <ion-icon name="key-outline" slot="start" color="primary"></ion-icon>
       <ion-label>
-        <h3>Change Master Password</h3>
-        <p>Re-encrypt vault key with new password</p>
+        <h3>{{ 'SETTINGS.CHANGE_MASTER_PASSWORD' | translate }}</h3>
+        <p>{{ 'SETTINGS.REENCRYPT_VAULT_KEY' | translate }}</p>
       </ion-label>
     </ion-item>
 
@@ -93,8 +110,8 @@
     <ion-item button (click)="onExportBackup()">
       <ion-icon name="cloud-upload-outline" slot="start" color="secondary"></ion-icon>
       <ion-label>
-        <h3>Export Encrypted Backup</h3>
-        <p>Save password-protected .vault file</p>
+        <h3>{{ 'SETTINGS.EXPORT_BACKUP' | translate }}</h3>
+        <p>{{ 'SETTINGS.SAVE_BACKUP_FILE' | translate }}</p>
       </ion-label>
     </ion-item>
 
@@ -102,8 +119,8 @@
     <ion-item button (click)="onImportBackup()">
       <ion-icon name="cloud-download-outline" slot="start" color="secondary"></ion-icon>
       <ion-label>
-        <h3>Import Encrypted Backup</h3>
-        <p>Full transactional restore from .vault file</p>
+        <h3>{{ 'SETTINGS.IMPORT_BACKUP' | translate }}</h3>
+        <p>{{ 'SETTINGS.RESTORE_BACKUP_DESCRIPTION' | translate }}</p>
       </ion-label>
     </ion-item>
   </ion-list>
@@ -122,17 +139,17 @@
     <ion-card-header>
       <ion-card-title>
         <ion-icon name="shield-checkmark-outline" color="success"></ion-icon>
-        Security & Privacy
+        {{ 'SETTINGS.SECURITY_PRIVACY' | translate }}
       </ion-card-title>
-      <ion-card-subtitle>Zero-Knowledge, Offline Architecture</ion-card-subtitle>
+      <ion-card-subtitle>{{ 'SETTINGS.OFFLINE_ARCHITECTURE' | translate }}</ion-card-subtitle>
     </ion-card-header>
     <ion-card-content>
-      <p>• <strong>Local Database:</strong> SQLite encrypted with SQLCipher (AES-256).</p>
-      <p>• <strong>Key Derivation:</strong> Argon2id (64 MiB memory, 3 passes, 16-byte random salt).</p>
-      <p>• <strong>Key Hierarchy:</strong> 256-bit DEK wrapped via AES-256-GCM.</p>
-      <p>• <strong>Biometrics:</strong> Real Android Keystore hardware-backed encryption key.</p>
-      <p>• <strong>Screen Security:</strong> Android FLAG_SECURE blocks screenshots and task switcher previews.</p>
-      <p>• <strong>Strictly Offline:</strong> No network permissions, zero telemetry, zero servers.</p>
+      <p>• <strong>{{ 'SETTINGS.LOCAL_DATABASE' | translate }}</strong> {{ 'SETTINGS.DATABASE_ENCRYPTION' | translate }}</p>
+      <p>• <strong>{{ 'SETTINGS.KEY_DERIVATION' | translate }}</strong> {{ 'SETTINGS.KEY_DERIVATION_DETAILS' | translate }}</p>
+      <p>• <strong>{{ 'SETTINGS.KEY_HIERARCHY' | translate }}</strong> {{ 'SETTINGS.KEY_HIERARCHY_DETAILS' | translate }}</p>
+      <p>• <strong>{{ 'SETTINGS.BIOMETRICS' | translate }}</strong> {{ 'SETTINGS.ANDROID_KEYSTORE' | translate }}</p>
+      <p>• <strong>{{ 'SETTINGS.SCREEN_SECURITY' | translate }}</strong> {{ 'SETTINGS.FLAG_SECURE' | translate }}</p>
+      <p>• <strong>{{ 'SETTINGS.STRICTLY_OFFLINE' | translate }}</strong> {{ 'SETTINGS.NO_NETWORK' | translate }}</p>
     </ion-card-content>
   </ion-card>
 
@@ -140,7 +157,7 @@
   <div class="ion-margin-top ion-padding">
     <ion-button expand="block" color="danger" fill="outline" (click)="onLockVaultNow()">
       <ion-icon name="lock-closed" slot="start"></ion-icon>
-      Lock Vault Now
+      {{ 'SETTINGS.LOCK_VAULT_NOW' | translate }}
     </ion-button>
   </div>
 </ion-content>

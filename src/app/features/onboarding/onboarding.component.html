@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="primary">
-    <ion-title>Dohko Password Manager</ion-title>
+    <ion-title>{{ 'APP.NAME' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -12,15 +12,15 @@
         color="primary"
         class="hero-icon"
       ></ion-icon>
-      <h2>Welcome to Dohko</h2>
-      <p class="subtitle">Secure, Offline-First Password Vault</p>
+      <h2>{{ 'ONBOARDING.WELCOME' | translate }}</h2>
+      <p class="subtitle">{{ 'APP.SUBTITLE' | translate }}</p>
     </div>
 
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Create Master Password</ion-card-title>
+        <ion-card-title>{{ 'ONBOARDING.CREATE_MASTER_PASSWORD' | translate }}</ion-card-title>
         <ion-card-subtitle
-          >Protect your local encrypted database</ion-card-subtitle
+          >{{ 'ONBOARDING.PROTECT_DATABASE' | translate }}</ion-card-subtitle
         >
       </ion-card-header>
 
@@ -28,10 +28,7 @@
         <div class="security-notice">
           <ion-icon name="warning" style="color: #856404"></ion-icon>
           <div>
-            <strong>Important:</strong> Your master password encrypts your vault
-            with Argon2id and AES-256-GCM. It is never stored or transmitted. If
-            lost, your vault <em>cannot</em> be recovered without an encrypted
-            backup.
+            <strong>{{ 'COMMON.IMPORTANT' | translate }}</strong> {{ 'ONBOARDING.SECURITY_NOTICE' | translate }}
           </div>
         </div>
 
@@ -39,13 +36,13 @@
           <ion-item class="ion-margin-top">
             <ion-input
               [type]="showPassword ? 'text' : 'password'"
-              label="Master Password"
+              [label]="'COMMON.MASTER_PASSWORD' | translate"
               labelPlacement="floating"
               [(ngModel)]="password"
               name="password"
               required
               minlength="8"
-              placeholder="Minimum 8 characters"
+              [placeholder]="'ONBOARDING.MINIMUM_CHARACTERS' | translate"
               [disabled]="isLoading()"
             >
               <ion-button
@@ -53,7 +50,7 @@
                 slot="end"
                 type="button"
                 (click)="showPassword = !showPassword"
-                aria-label="Toggle password visibility"
+                [attr.aria-label]="'COMMON.TOGGLE_PASSWORD_VISIBILITY' | translate"
               >
                 <ion-icon
                   [name]="showPassword ? 'eye-off' : 'eye'"
@@ -66,12 +63,12 @@
           <ion-item class="ion-margin-top">
             <ion-input
               [type]="showConfirmPassword ? 'text' : 'password'"
-              label="Confirm Master Password"
+              [label]="'ONBOARDING.CONFIRM_MASTER_PASSWORD' | translate"
               labelPlacement="floating"
               [(ngModel)]="confirmPassword"
               name="confirmPassword"
               required
-              placeholder="Re-enter master password"
+              [placeholder]="'ONBOARDING.REENTER_MASTER_PASSWORD' | translate"
               [disabled]="isLoading()"
             >
               <ion-button
@@ -79,7 +76,7 @@
                 slot="end"
                 type="button"
                 (click)="showConfirmPassword = !showConfirmPassword"
-                aria-label="Toggle confirm password visibility"
+                [attr.aria-label]="'COMMON.TOGGLE_PASSWORD_VISIBILITY' | translate"
               >
                 <ion-icon
                   [name]="showConfirmPassword ? 'eye-off' : 'eye'"
@@ -99,8 +96,7 @@
             <div class="loading-state ion-margin-top ion-text-center">
               <ion-spinner name="crescent" color="primary"></ion-spinner>
               <p>
-                Deriving Argon2id keys & initializing encrypted SQLCipher
-                database...
+                {{ 'ONBOARDING.INITIALIZING_VAULT' | translate }}
               </p>
               <ion-progress-bar
                 type="indeterminate"
@@ -116,7 +112,7 @@
             [disabled]="isLoading() || !isFormValid()"
           >
             <ion-icon name="lock-closed" slot="start"></ion-icon>
-            Create Encrypted Vault
+            {{ 'ONBOARDING.CREATE_VAULT' | translate }}
           </ion-button>
         </form>
       </ion-card-content>

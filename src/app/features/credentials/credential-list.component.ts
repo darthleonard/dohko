@@ -30,6 +30,8 @@ import { AppPrivacyService } from '../../core/security/app-privacy.service';
 import { ClipboardService } from '../../core/security/clipboard.service';
 import { CredentialEditorComponent } from './credential-editor.component';
 import { CredentialDetailComponent } from './credential-detail.component';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { LanguageService } from '../../core/i18n/language.service';
 
 @Component({
   selector: 'app-credential-list',
@@ -37,7 +39,8 @@ import { CredentialDetailComponent } from './credential-detail.component';
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule
+    IonicModule,
+    TranslatePipe
   ],
   templateUrl: './credential-list.component.html',
   styleUrls: ['./credential-list.component.css']
@@ -56,7 +59,8 @@ export class CredentialListComponent implements OnInit, OnDestroy {
     private actionSheetCtrl: ActionSheetController,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
-    private router: Router
+    private router: Router,
+    private translate: LanguageService
   ) {
     addIcons({
       lockClosed,
@@ -112,10 +116,12 @@ export class CredentialListComponent implements OnInit, OnDestroy {
   public async onCopyPassword(cred: Credential): Promise<void> {
     await this.clipboardService.copySensitive(cred.password);
     const timeout = await this.clipboardService.getTimeout();
-    const timeoutMsg = timeout > 0 ? ` (clears in ${timeout}s)` : '';
+    const message = timeout > 0
+      ? this.translate.instant('VAULT.PASSWORD_COPIED_TIMEOUT', { seconds: timeout })
+      : this.translate.instant('VAULT.PASSWORD_COPIED');
 
     const toast = await this.toastCtrl.create({
-      message: `Password copied to clipboard${timeoutMsg}`,
+      message,
       duration: 2500,
       position: 'bottom',
       color: 'success'
@@ -166,12 +172,12 @@ export class CredentialListComponent implements OnInit, OnDestroy {
 
   public async onDeleteCredential(cred: Credential): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Delete Credential',
-      message: `Are you sure you want to delete "${cred.name}"?`,
+      header: this.translate.instant('VAULT.DELETE_CREDENTIAL'),
+      message: this.translate.instant('VAULT.CONFIRM_DELETE', { name: cred.name }),
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Delete',
+          text: this.translate.instant('COMMON.DELETE'),
           role: 'destructive',
           handler: async () => {
             await this.credentialRepo.delete(cred.id);
@@ -189,12 +195,12 @@ export class CredentialListComponent implements OnInit, OnDestroy {
       header: cred.name,
       buttons: [
         {
-          text: 'Copy Username',
+          text: this.translate.instant('VAULT.COPY_USERNAME'),
           icon: 'copy-outline',
           handler: async () => {
             await this.clipboardService.copySensitive(cred.username, false);
             const toast = await this.toastCtrl.create({
-              message: 'Username copied',
+              message: this.translate.instant('VAULT.USERNAME_COPIED'),
               duration: 2000,
               position: 'bottom',
               color: 'dark'
@@ -203,28 +209,28 @@ export class CredentialListComponent implements OnInit, OnDestroy {
           }
         },
         {
-          text: 'Copy Password',
+          text: this.translate.instant('VAULT.COPY_PASSWORD'),
           icon: 'key-outline',
           handler: () => {
             this.onCopyPassword(cred);
           }
         },
         {
-          text: 'View Details',
+          text: this.translate.instant('VAULT.VIEW_DETAILS'),
           icon: 'eye',
           handler: () => {
             this.onViewDetail(cred);
           }
         },
         {
-          text: 'Edit',
+          text: this.translate.instant('COMMON.EDIT'),
           icon: 'create-outline',
           handler: () => {
             this.onEditCredential(cred);
           }
         },
         {
-          text: 'Delete',
+          text: this.translate.instant('COMMON.DELETE'),
           icon: 'trash-outline',
           role: 'destructive',
           handler: () => {
@@ -232,7 +238,7 @@ export class CredentialListComponent implements OnInit, OnDestroy {
           }
         },
         {
-          text: 'Cancel',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel'
         }
       ]

@@ -24,11 +24,13 @@ import {
 } from '../../core/auth/biometric.service';
 import { VaultSessionService } from '../../core/auth/vault-session.service';
 import { KeyManagementService } from '../../core/crypto/key-management.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { LanguageService } from '../../core/i18n/language.service';
 
 @Component({
   selector: 'app-unlock',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, IonicModule, TranslatePipe],
   templateUrl: './unlock.component.html',
   styleUrls: ['./unlock.component.css'],
 })
@@ -47,6 +49,7 @@ export class UnlockComponent implements OnInit {
     private router: Router,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
+    private translate: LanguageService,
   ) {
     addIcons({
       lockClosed,
@@ -97,7 +100,7 @@ export class UnlockComponent implements OnInit {
       this.errorMessage.set(
         err instanceof Error
           ? err.message
-          : 'Unlock failed. Incorrect password.',
+          : this.translate.instant('UNLOCK.INCORRECT_PASSWORD'),
       );
     } finally {
       this.isLoading.set(false);
@@ -132,17 +135,16 @@ export class UnlockComponent implements OnInit {
 
   public async onShowRecoveryHelp(): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Master Password Recovery',
-      subHeader: 'Security Architecture Notice',
-      message:
-        'Because your vault is encrypted with zero-knowledge cryptography (Argon2id + AES-256-GCM), your password cannot be reset or recovered by anyone.\n\nIf you have an exported .vault backup file, you can reset your local vault and restore your credentials with your backup password.',
+      header: this.translate.instant('UNLOCK.RECOVERY_TITLE'),
+      subHeader: this.translate.instant('UNLOCK.SECURITY_NOTICE'),
+      message: this.translate.instant('UNLOCK.RECOVERY_MESSAGE'),
       buttons: [
         {
-          text: 'Close',
+          text: this.translate.instant('COMMON.CLOSE'),
           role: 'cancel',
         },
         {
-          text: 'Reset Vault & Restore',
+          text: this.translate.instant('UNLOCK.RESET_RESTORE'),
           role: 'destructive',
           handler: () => {
             this.confirmVaultReset();
@@ -155,16 +157,15 @@ export class UnlockComponent implements OnInit {
 
   private async confirmVaultReset(): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Erase Local Vault?',
-      message:
-        'WARNING: This will permanently delete the current encrypted database and keys on this device. Only proceed if you have an encrypted backup file (.vault).',
+      header: this.translate.instant('UNLOCK.ERASE_TITLE'),
+      message: this.translate.instant('UNLOCK.ERASE_MESSAGE'),
       buttons: [
         {
-          text: 'Cancel',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'Erase Vault',
+          text: this.translate.instant('UNLOCK.ERASE_VAULT'),
           role: 'destructive',
           handler: async () => {
             await this.keyManagement.clearMetadata();

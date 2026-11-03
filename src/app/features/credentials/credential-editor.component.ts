@@ -5,6 +5,7 @@ import { IonicModule, ModalController } from '@ionic/angular/lazy';
 import { addIcons } from 'ionicons';
 import { close, eye, eyeOff, save } from 'ionicons/icons';
 import { Credential, CredentialRepository } from '../../core/database/credential.repository';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-credential-editor',
@@ -12,7 +13,8 @@ import { Credential, CredentialRepository } from '../../core/database/credential
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule
+    IonicModule,
+    TranslatePipe
   ],
   templateUrl: './credential-editor.component.html',
   styleUrls: ['./credential-editor.component.css']

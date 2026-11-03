@@ -15,6 +15,7 @@ import {
   fingerPrint,
   informationCircleOutline,
   keyOutline,
+  languageOutline,
   lockClosed,
   shieldCheckmarkOutline,
   timerOutline
@@ -26,6 +27,8 @@ import { AutoLockService } from '../../core/security/auto-lock.service';
 import { AppPrivacyService } from '../../core/security/app-privacy.service';
 import { ClipboardService } from '../../core/security/clipboard.service';
 import { BackupService } from '../../core/backup/backup.service';
+import { LanguageService } from '../../core/i18n/language.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-settings',
@@ -33,7 +36,8 @@ import { BackupService } from '../../core/backup/backup.service';
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule
+    IonicModule,
+    TranslatePipe,
   ],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
@@ -46,6 +50,10 @@ export class SettingsComponent implements OnInit {
   public visibilityTimeout = signal(30);
   public clipboardTimeout = signal(30);
 
+  private get translate(): LanguageService {
+    return this.languageService;
+  }
+
   constructor(
     private biometricService: BiometricService,
     private masterPasswordService: MasterPasswordService,
@@ -57,7 +65,8 @@ export class SettingsComponent implements OnInit {
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
-    private router: Router
+    private router: Router,
+    public languageService: LanguageService
   ) {
     addIcons({
       fingerPrint,
@@ -67,12 +76,28 @@ export class SettingsComponent implements OnInit {
       cloudDownloadOutline,
       shieldCheckmarkOutline,
       lockClosed,
-      informationCircleOutline
+      informationCircleOutline,
+      languageOutline
     });
   }
 
   public async ngOnInit(): Promise<void> {
     await this.loadSettings();
+  }
+
+  public async onLanguageChange(value: unknown): Promise<void> {
+    if (!this.languageService.isAppLanguage(value)) {
+      console.error('Unsupported language selected:', value);
+      await this.showToast(this.languageService.instant('SETTINGS.LANGUAGE_INVALID'), 'danger');
+      return;
+    }
+
+    try {
+      await this.languageService.setLanguage(value);
+    } catch (err: unknown) {
+      console.error('Failed to save language preference:', err);
+      await this.showToast(this.languageService.instant('SETTINGS.LANGUAGE_SAVE_FAILED'), 'danger');
+    }
   }
 
   private async loadSettings(): Promise<void> {
@@ -90,25 +115,25 @@ export class SettingsComponent implements OnInit {
 
     if (enable && !this.isBiometricEnrolled()) {
       const alert = await this.alertCtrl.create({
-        header: 'Enable Biometric Unlock',
-        message: 'Enter your master password to verify and enroll hardware-backed biometrics.',
+        header: this.translate.instant('SETTINGS.BIOMETRIC_ENABLE_TITLE'),
+        message: this.translate.instant('SETTINGS.BIOMETRIC_ENABLE_MESSAGE'),
         inputs: [
           {
             name: 'password',
             type: 'password',
-            placeholder: 'Master Password'
+            placeholder: this.translate.instant('COMMON.MASTER_PASSWORD')
           }
         ],
         buttons: [
           {
-            text: 'Cancel',
+            text: this.translate.instant('COMMON.CANCEL'),
             role: 'cancel',
             handler: () => {
               this.isBiometricEnrolled.set(false);
             }
           },
           {
-            text: 'Verify & Enroll',
+            text: this.translate.instant('SETTINGS.VERIFY_ENROLL'),
             handler: async (data: { password?: string }) => {
               if (!data.password) {
                 this.isBiometricEnrolled.set(false);
@@ -125,7 +150,7 @@ export class SettingsComponent implements OnInit {
       await this.biometricService.disable();
       this.isBiometricEnrolled.set(false);
       const toast = await this.toastCtrl.create({
-        message: 'Biometric unlock disabled',
+        message: this.translate.instant('SETTINGS.BIOMETRIC_DISABLED'),
         duration: 2000,
         position: 'bottom'
       });
@@ -134,7 +159,7 @@ export class SettingsComponent implements OnInit {
   }
 
   private async performBiometricEnrollment(password: string): Promise<void> {
-    const loading = await this.loadingCtrl.create({ message: 'Verifying master key...' });
+    const loading = await this.loadingCtrl.create({ message: this.translate.instant('SETTINGS.VERIFYING_MASTER_KEY') });
     await loading.present();
 
     try {
@@ -145,7 +170,7 @@ export class SettingsComponent implements OnInit {
       if (result.success) {
         this.isBiometricEnrolled.set(true);
         const toast = await this.toastCtrl.create({
-          message: 'Biometric unlock enabled successfully!',
+          message: this.translate.instant('SETTINGS.BIOMETRIC_ENABLED'),
           duration: 2500,
           color: 'success',
           position: 'bottom'
@@ -191,40 +216,40 @@ export class SettingsComponent implements OnInit {
 
   public async onChangeMasterPassword(): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Change Master Password',
-      subHeader: 'Re-encrypts vault master key',
+      header: this.translate.instant('SETTINGS.CHANGE_MASTER_PASSWORD'),
+      subHeader: this.translate.instant('SETTINGS.REENCRYPT_MASTER_KEY'),
       inputs: [
         {
           name: 'currentPassword',
           type: 'password',
-          placeholder: 'Current Master Password'
+          placeholder: this.translate.instant('SETTINGS.CURRENT_MASTER_PASSWORD')
         },
         {
           name: 'newPassword',
           type: 'password',
-          placeholder: 'New Master Password (min 8 chars)'
+          placeholder: this.translate.instant('SETTINGS.NEW_MASTER_PASSWORD')
         },
         {
           name: 'confirmNewPassword',
           type: 'password',
-          placeholder: 'Confirm New Master Password'
+          placeholder: this.translate.instant('SETTINGS.CONFIRM_NEW_MASTER_PASSWORD')
         }
       ],
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Change Password',
+          text: this.translate.instant('SETTINGS.CHANGE_PASSWORD'),
           handler: async (data: { currentPassword?: string; newPassword?: string; confirmNewPassword?: string }) => {
             if (!data.currentPassword || !data.newPassword || !data.confirmNewPassword) {
-              this.showToast('All password fields are required.', 'danger');
+              this.showToast(this.translate.instant('SETTINGS.PASSWORD_FIELDS_REQUIRED'), 'danger');
               return false;
             }
             if (data.newPassword.length < 8) {
-              this.showToast('New password must be at least 8 characters.', 'danger');
+              this.showToast(this.translate.instant('SETTINGS.NEW_PASSWORD_TOO_SHORT'), 'danger');
               return false;
             }
             if (data.newPassword !== data.confirmNewPassword) {
-              this.showToast('New passwords do not match.', 'danger');
+              this.showToast(this.translate.instant('SETTINGS.PASSWORDS_DO_NOT_MATCH'), 'danger');
               return false;
             }
             await this.performPasswordChange(data.currentPassword, data.newPassword);
@@ -237,7 +262,7 @@ export class SettingsComponent implements OnInit {
   }
 
   private async performPasswordChange(curr: string, next: string): Promise<void> {
-    const loading = await this.loadingCtrl.create({ message: 'Deriving new Argon2id key...' });
+    const loading = await this.loadingCtrl.create({ message: this.translate.instant('SETTINGS.DERIVING_NEW_KEY') });
     await loading.present();
 
     try {
@@ -245,7 +270,7 @@ export class SettingsComponent implements OnInit {
       await this.masterPasswordService.changeMasterPassword(curr, next, activeDek);
       await loading.dismiss();
 
-      this.showToast('Master password changed successfully!', 'success');
+      this.showToast(this.translate.instant('SETTINGS.PASSWORD_CHANGED'), 'success');
     } catch (err: unknown) {
       await loading.dismiss();
       const msg = err instanceof Error ? err.message : String(err);
@@ -255,32 +280,32 @@ export class SettingsComponent implements OnInit {
 
   public async onExportBackup(): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Export Encrypted Backup',
-      subHeader: 'Create a standalone .vault file',
-      message: 'Choose a dedicated backup password to encrypt this file. You will need this password to restore your vault.',
+      header: this.translate.instant('SETTINGS.EXPORT_BACKUP'),
+      subHeader: this.translate.instant('SETTINGS.CREATE_BACKUP_FILE'),
+      message: this.translate.instant('SETTINGS.EXPORT_BACKUP_MESSAGE'),
       inputs: [
         {
           name: 'password',
           type: 'password',
-          placeholder: 'Backup Password (min 8 chars)'
+          placeholder: this.translate.instant('SETTINGS.BACKUP_PASSWORD')
         },
         {
           name: 'confirmPassword',
           type: 'password',
-          placeholder: 'Confirm Backup Password'
+          placeholder: this.translate.instant('SETTINGS.CONFIRM_BACKUP_PASSWORD')
         }
       ],
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Export',
+          text: this.translate.instant('COMMON.EXPORT'),
           handler: async (data: { password?: string; confirmPassword?: string }) => {
             if (!data.password || data.password.length < 8) {
-              this.showToast('Backup password must be at least 8 characters.', 'danger');
+              this.showToast(this.translate.instant('SETTINGS.BACKUP_PASSWORD_TOO_SHORT'), 'danger');
               return false;
             }
             if (data.password !== data.confirmPassword) {
-              this.showToast('Passwords do not match.', 'danger');
+              this.showToast(this.translate.instant('SETTINGS.PASSWORDS_DO_NOT_MATCH'), 'danger');
               return false;
             }
             await this.performExport(data.password);
@@ -293,17 +318,17 @@ export class SettingsComponent implements OnInit {
   }
 
   private async performExport(password: string): Promise<void> {
-    const loading = await this.loadingCtrl.create({ message: 'Generating encrypted backup...' });
+    const loading = await this.loadingCtrl.create({ message: this.translate.instant('SETTINGS.GENERATING_BACKUP') });
     await loading.present();
 
     try {
       const fileName = await this.backupService.exportBackup(password);
       await loading.dismiss();
-      this.showToast(`Backup created: ${fileName}`, 'success');
+      this.showToast(this.translate.instant('SETTINGS.BACKUP_CREATED', { fileName }), 'success');
     } catch (err: unknown) {
       await loading.dismiss();
       const msg = err instanceof Error ? err.message : String(err);
-      this.showToast(`Export failed: ${msg}`, 'danger');
+      this.showToast(this.translate.instant('SETTINGS.EXPORT_FAILED', { message: msg }), 'danger');
     }
   }
 
@@ -332,24 +357,24 @@ export class SettingsComponent implements OnInit {
 
   private async promptForRestore(fileContent: string): Promise<void> {
     const alert = await this.alertCtrl.create({
-      header: 'Restore Encrypted Backup',
-      subHeader: 'Warning: Full Vault Replacement',
-      message: 'Restoring a backup will transactionally replace all current credentials with the records in the backup.\n\nEnter the backup password:',
+      header: this.translate.instant('SETTINGS.RESTORE_BACKUP'),
+      subHeader: this.translate.instant('SETTINGS.FULL_VAULT_REPLACEMENT'),
+      message: this.translate.instant('SETTINGS.RESTORE_BACKUP_MESSAGE'),
       inputs: [
         {
           name: 'password',
           type: 'password',
-          placeholder: 'Backup Password'
+          placeholder: this.translate.instant('SETTINGS.BACKUP_PASSWORD_SHORT')
         }
       ],
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
         {
-          text: 'Decrypt & Restore',
+          text: this.translate.instant('SETTINGS.DECRYPT_RESTORE'),
           role: 'destructive',
           handler: async (data: { password?: string }) => {
             if (!data.password) {
-              this.showToast('Backup password is required.', 'danger');
+              this.showToast(this.translate.instant('SETTINGS.BACKUP_PASSWORD_REQUIRED'), 'danger');
               return false;
             }
             await this.performRestore(fileContent, data.password);
@@ -362,18 +387,18 @@ export class SettingsComponent implements OnInit {
   }
 
   private async performRestore(content: string, pass: string): Promise<void> {
-    const loading = await this.loadingCtrl.create({ message: 'Decrypting & restoring records...' });
+    const loading = await this.loadingCtrl.create({ message: this.translate.instant('SETTINGS.RESTORING_RECORDS') });
     await loading.present();
 
     try {
       const count = await this.backupService.restoreBackup(content, pass);
       await loading.dismiss();
-      this.showToast(`Vault successfully restored! (${count} credentials)`, 'success');
+      this.showToast(this.translate.instant('SETTINGS.VAULT_RESTORED', { count }), 'success');
       await this.router.navigate(['/credentials']);
     } catch (err: unknown) {
       await loading.dismiss();
       const msg = err instanceof Error ? err.message : String(err);
-      this.showToast(`Restore failed: ${msg}. Your existing vault was preserved.`, 'danger');
+      this.showToast(this.translate.instant('SETTINGS.RESTORE_FAILED', { message: msg }), 'danger');
     }
   }
 

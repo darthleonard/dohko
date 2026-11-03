@@ -13,11 +13,13 @@ import {
 } from 'ionicons/icons';
 import { MasterPasswordService } from '../../core/auth/master-password.service';
 import { VaultSessionService } from '../../core/auth/vault-session.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { LanguageService } from '../../core/i18n/language.service';
 
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, IonicModule, TranslatePipe],
   templateUrl: './onboarding.component.html',
   styleUrls: ['./onboarding.component.css'],
 })
@@ -34,6 +36,7 @@ export class OnboardingComponent {
     private sessionService: VaultSessionService,
     private router: Router,
     private toastCtrl: ToastController,
+    private translate: LanguageService,
   ) {
     addIcons({ shieldCheckmark, lockClosed, warning, eye, eyeOff });
   }
@@ -46,12 +49,14 @@ export class OnboardingComponent {
     this.errorMessage.set('');
 
     if (this.password.length < MasterPasswordService.MIN_PASSWORD_LENGTH) {
-      this.errorMessage.set(`Master password must be at least ${MasterPasswordService.MIN_PASSWORD_LENGTH} characters.`);
+      this.errorMessage.set(this.translate.instant('ONBOARDING.ERROR_PASSWORD_MIN_LENGTH', {
+        minLength: MasterPasswordService.MIN_PASSWORD_LENGTH,
+      }));
       return;
     }
 
     if (this.password !== this.confirmPassword) {
-      this.errorMessage.set('Passwords do not match.');
+      this.errorMessage.set(this.translate.instant('COMMON.PASSWORDS_DO_NOT_MATCH'));
       return;
     }
 
@@ -62,7 +67,7 @@ export class OnboardingComponent {
       await this.sessionService.unlock(dek);
 
       const toast = await this.toastCtrl.create({
-        message: 'Vault created successfully!',
+        message: this.translate.instant('ONBOARDING.VAULT_CREATED'),
         duration: 2000,
         color: 'success',
         position: 'bottom',
