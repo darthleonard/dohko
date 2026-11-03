@@ -48,6 +48,24 @@
     "ERASE_MESSAGE": "ADVERTENCIA: Esto eliminará permanentemente la base de datos cifrada y las claves de este dispositivo. Continúa solo si tienes un respaldo cifrado (.vault).",
     "ERASE_VAULT": "Borrar bóveda"
   },
+  "BIOMETRIC": {
+    "ANDROID_ONLY": "El desbloqueo biométrico solo está disponible en dispositivos Android.",
+    "STATUS_FAILED": "No se pudo verificar la disponibilidad de la biometría.",
+    "ENROLL_TITLE": "Activar desbloqueo biométrico",
+    "ENROLL_SUBTITLE": "Confirma tu identidad con biometría para proteger la clave de la bóveda.",
+    "UNLOCK_TITLE": "Desbloquear bóveda",
+    "UNLOCK_SUBTITLE": "Usa tu biometría para desbloquear la bóveda.",
+    "USE_MASTER_PASSWORD": "Usar contraseña maestra",
+    "CREDENTIALS_CHANGED": "Cambió la configuración biométrica. Desbloquea con tu contraseña maestra.",
+    "NOT_ENROLLED": "La biometría no está configurada en este dispositivo.",
+    "PAYLOAD_CORRUPT": "Los datos biométricos no son válidos. Desbloquea con tu contraseña maestra y configura la biometría de nuevo.",
+    "KEY_MISSING": "La clave biométrica no está disponible. Desbloquea con tu contraseña maestra y configura la biometría de nuevo.",
+    "AUTHENTICATION_LOCKED": "La autenticación biométrica está bloqueada temporalmente. Inténtalo más tarde o usa tu contraseña maestra.",
+    "HARDWARE_UNAVAILABLE": "El hardware biométrico no está disponible. Usa tu contraseña maestra.",
+    "AUTHENTICATION_FAILED": "No se pudo completar la autenticación biométrica. Inténtalo de nuevo o usa tu contraseña maestra.",
+    "ENROLL_FAILED": "No se pudo activar el desbloqueo biométrico. Inténtalo de nuevo.",
+    "UNLOCK_FAILED": "No se pudo desbloquear con biometría. Inténtalo de nuevo o usa tu contraseña maestra."
+  },
   "VAULT": {
     "SEARCH_PLACEHOLDER": "Buscar por etiqueta, usuario o sitio web",
     "NO_CREDENTIALS": "Aún no hay credenciales",

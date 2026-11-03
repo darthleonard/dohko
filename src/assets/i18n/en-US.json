@@ -48,6 +48,24 @@
     "ERASE_MESSAGE": "WARNING: This will permanently delete the current encrypted database and keys on this device. Only proceed if you have an encrypted backup file (.vault).",
     "ERASE_VAULT": "Erase Vault"
   },
+  "BIOMETRIC": {
+    "ANDROID_ONLY": "Biometric unlock is only available on Android devices.",
+    "STATUS_FAILED": "Could not check biometric availability.",
+    "ENROLL_TITLE": "Enable Biometric Unlock",
+    "ENROLL_SUBTITLE": "Confirm your biometric to protect the vault key.",
+    "UNLOCK_TITLE": "Unlock Vault",
+    "UNLOCK_SUBTITLE": "Use your biometric to unlock the vault.",
+    "USE_MASTER_PASSWORD": "Use Master Password",
+    "CREDENTIALS_CHANGED": "Biometric credentials changed. Unlock with your master password.",
+    "NOT_ENROLLED": "Biometric unlock is not set up on this device.",
+    "PAYLOAD_CORRUPT": "Biometric data is invalid. Unlock with your master password and set up biometrics again.",
+    "KEY_MISSING": "The biometric key is unavailable. Unlock with your master password and set up biometrics again.",
+    "AUTHENTICATION_LOCKED": "Biometric authentication is temporarily locked. Try again later or use your master password.",
+    "HARDWARE_UNAVAILABLE": "Biometric hardware is unavailable. Use your master password.",
+    "AUTHENTICATION_FAILED": "Biometric authentication could not be completed. Try again or use your master password.",
+    "ENROLL_FAILED": "Could not enable biometric unlock. Please try again.",
+    "UNLOCK_FAILED": "Could not unlock with biometrics. Try again or use your master password."
+  },
   "VAULT": {
     "SEARCH_PLACEHOLDER": "Search by label, username, or website",
     "NO_CREDENTIALS": "No Credentials Yet",

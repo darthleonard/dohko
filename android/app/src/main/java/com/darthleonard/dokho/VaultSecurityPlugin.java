@@ -88,7 +88,7 @@ public class VaultSecurityPlugin extends Plugin {
     public void enrollBiometrics(PluginCall call) {
         String tokenB64 = call.getString("token");
         if (tokenB64 == null || tokenB64.isEmpty()) {
-            call.reject("Token payload is required for biometric wrapping");
+            call.reject("BIOMETRIC_INVALID_TOKEN");
             return;
         }
 
@@ -96,9 +96,13 @@ public class VaultSecurityPlugin extends Plugin {
         try {
             tokenBytes = Base64.decode(tokenB64, Base64.NO_WRAP);
         } catch (Exception e) {
-            call.reject("Invalid base64 token payload");
+            call.reject("BIOMETRIC_INVALID_TOKEN");
             return;
         }
+
+        String promptTitle = getPromptText(call, "promptTitle", "Enable Biometric Unlock");
+        String promptSubtitle = getPromptText(call, "promptSubtitle", "Confirm your biometric to protect the vault key");
+        String negativeButtonText = getPromptText(call, "negativeButtonText", "Cancel");
 
         getActivity().runOnUiThread(() -> {
             try {
@@ -130,9 +134,9 @@ public class VaultSecurityPlugin extends Plugin {
                 FragmentActivity activity = (FragmentActivity) getActivity();
 
                 BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-                        .setTitle("Enable Biometric Unlock")
-                        .setSubtitle("Confirm your biometric to protect the vault key")
-                        .setNegativeButtonText("Cancel")
+                        .setTitle(promptTitle)
+                        .setSubtitle(promptSubtitle)
+                        .setNegativeButtonText(negativeButtonText)
                         .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
                         .build();
 
@@ -143,7 +147,7 @@ public class VaultSecurityPlugin extends Plugin {
                         try {
                             BiometricPrompt.CryptoObject cryptoObject = result.getCryptoObject();
                             if (cryptoObject == null || cryptoObject.getCipher() == null) {
-                                call.reject("Biometric crypto object is null");
+                                call.reject("BIOMETRIC_ENROLLMENT_FAILED");
                                 return;
                             }
                             Cipher authenticatedCipher = cryptoObject.getCipher();
@@ -163,7 +167,7 @@ public class VaultSecurityPlugin extends Plugin {
                             res.put("success", true);
                             call.resolve(res);
                         } catch (Exception e) {
-                            call.reject("Failed to encrypt token with biometric key: " + e.getMessage());
+                            call.reject("BIOMETRIC_ENROLLMENT_FAILED");
                         }
                     }
 
@@ -174,7 +178,7 @@ public class VaultSecurityPlugin extends Plugin {
                         JSObject err = new JSObject();
                         err.put("success", false);
                         err.put("cancelled", errorCode == BiometricPrompt.ERROR_USER_CANCELED || errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON);
-                        err.put("error", errString.toString());
+                        err.put("errorCode", errorCode);
                         call.resolve(err);
                     }
 
@@ -188,7 +192,7 @@ public class VaultSecurityPlugin extends Plugin {
 
             } catch (Exception e) {
                 deleteBiometricData();
-                call.reject("Failed to initialize biometric enrollment: " + e.getMessage());
+                call.reject("BIOMETRIC_ENROLLMENT_FAILED");
             }
         });
     }
@@ -200,7 +204,7 @@ public class VaultSecurityPlugin extends Plugin {
             JSObject res = new JSObject();
             res.put("success", false);
             res.put("enrolled", false);
-            res.put("error", "Biometric unlock not enrolled");
+            res.put("errorCode", -1);
             call.resolve(res);
             return;
         }
@@ -215,7 +219,7 @@ public class VaultSecurityPlugin extends Plugin {
                         JSObject res = new JSObject();
                         res.put("success", false);
                         res.put("enrolled", false);
-                        res.put("error", "Corrupt biometric payload");
+                        res.put("errorCode", -2);
                         call.resolve(res);
                         return;
                     }
@@ -228,7 +232,7 @@ public class VaultSecurityPlugin extends Plugin {
                     JSObject res = new JSObject();
                     res.put("success", false);
                     res.put("enrolled", false);
-                    res.put("error", "Invalid IV length");
+                    res.put("errorCode", -2);
                     call.resolve(res);
                     return;
                 }
@@ -244,7 +248,7 @@ public class VaultSecurityPlugin extends Plugin {
                     JSObject res = new JSObject();
                     res.put("success", false);
                     res.put("enrolled", false);
-                    res.put("error", "Biometric key alias not found");
+                    res.put("errorCode", -3);
                     call.resolve(res);
                     return;
                 }
@@ -259,7 +263,7 @@ public class VaultSecurityPlugin extends Plugin {
                     JSObject res = new JSObject();
                     res.put("success", false);
                     res.put("invalidated", true);
-                    res.put("error", "Biometric credentials changed. Please unlock with master password.");
+                    res.put("errorCode", -4);
                     call.resolve(res);
                     return;
                 }
@@ -268,9 +272,9 @@ public class VaultSecurityPlugin extends Plugin {
                 FragmentActivity activity = (FragmentActivity) getActivity();
 
                 BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-                        .setTitle("Unlock Vault")
-                        .setSubtitle("Use your biometric credential to unlock")
-                        .setNegativeButtonText("Use Master Password")
+                        .setTitle(getPromptText(call, "promptTitle", "Unlock Vault"))
+                        .setSubtitle(getPromptText(call, "promptSubtitle", "Use your biometric credential to unlock"))
+                        .setNegativeButtonText(getPromptText(call, "negativeButtonText", "Use Master Password"))
                         .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
                         .build();
 
@@ -281,7 +285,7 @@ public class VaultSecurityPlugin extends Plugin {
                         try {
                             BiometricPrompt.CryptoObject cryptoObject = result.getCryptoObject();
                             if (cryptoObject == null || cryptoObject.getCipher() == null) {
-                                call.reject("CryptoObject is null");
+                                call.reject("BIOMETRIC_UNLOCK_FAILED");
                                 return;
                             }
                             Cipher authenticatedCipher = cryptoObject.getCipher();
@@ -292,7 +296,7 @@ public class VaultSecurityPlugin extends Plugin {
                             res.put("token", Base64.encodeToString(decrypted, Base64.NO_WRAP));
                             call.resolve(res);
                         } catch (Exception e) {
-                            call.reject("Decryption failed: " + e.getMessage());
+                            call.reject("BIOMETRIC_UNLOCK_FAILED");
                         }
                     }
 
@@ -302,7 +306,7 @@ public class VaultSecurityPlugin extends Plugin {
                         JSObject res = new JSObject();
                         res.put("success", false);
                         res.put("cancelled", errorCode == BiometricPrompt.ERROR_USER_CANCELED || errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON);
-                        res.put("error", errString.toString());
+                        res.put("errorCode", errorCode);
                         call.resolve(res);
                     }
 
@@ -315,7 +319,7 @@ public class VaultSecurityPlugin extends Plugin {
                 biometricPrompt.authenticate(promptInfo, new BiometricPrompt.CryptoObject(cipher));
 
             } catch (Exception e) {
-                call.reject("Biometric unlock error: " + e.getMessage());
+                call.reject("BIOMETRIC_UNLOCK_FAILED");
             }
         });
     }
@@ -341,5 +345,10 @@ public class VaultSecurityPlugin extends Plugin {
             }
         } catch (Exception ignored) {
         }
+    }
+
+    private String getPromptText(PluginCall call, String key, String fallback) {
+        String value = call.getString(key);
+        return value == null || value.trim().isEmpty() ? fallback : value;
     }
 }

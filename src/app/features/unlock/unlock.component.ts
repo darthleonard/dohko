@@ -118,7 +118,7 @@ export class UnlockComponent implements OnInit {
         await this.router.navigate(['/credentials'], { replaceUrl: true });
       } else if (res.invalidated) {
         this.errorMessage.set(
-          'Biometric credentials changed on device. Master password required.',
+          this.translate.instant('BIOMETRIC.CREDENTIALS_CHANGED'),
         );
         await this.checkBiometrics();
       } else if (!res.cancelled && res.error) {

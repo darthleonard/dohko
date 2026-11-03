@@ -1,17 +1,27 @@
 import { Injectable } from '@angular/core';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { CryptoService } from '../crypto/crypto.service';
+import { LanguageService } from '../i18n/language.service';
 
 interface VaultSecurityPluginInterface {
   setSecure(options: { enabled: boolean }): Promise<{ secure: boolean }>;
   checkBiometrics(): Promise<{ isAvailable: boolean; isEnrolled: boolean; status: number }>;
-  enrollBiometrics(options: { token: string }): Promise<{ success: boolean; cancelled?: boolean; error?: string }>;
-  unlockWithBiometrics(): Promise<{
+  enrollBiometrics(options: {
+    token: string;
+    promptTitle: string;
+    promptSubtitle: string;
+    negativeButtonText: string;
+  }): Promise<{ success: boolean; cancelled?: boolean; errorCode?: number }>;
+  unlockWithBiometrics(options: {
+    promptTitle: string;
+    promptSubtitle: string;
+    negativeButtonText: string;
+  }): Promise<{
     success: boolean;
     token?: string;
     invalidated?: boolean;
     cancelled?: boolean;
-    error?: string;
+    errorCode?: number;
   }>;
   disableBiometrics(): Promise<{ success: boolean }>;
 }
@@ -49,7 +59,10 @@ export interface BiometricUnlockResult {
 })
 export class BiometricService {
 
-  constructor(private cryptoService: CryptoService) {}
+  constructor(
+    private cryptoService: CryptoService,
+    private languageService: LanguageService,
+  ) {}
 
   /**
    * Checks if biometric hardware is available and if a biometric key is enrolled.
@@ -59,7 +72,7 @@ export class BiometricService {
       return {
         available: false,
         enrolled: false,
-        reason: 'Biometric unlock is only available on Android native devices.'
+        reason: this.languageService.instant('BIOMETRIC.ANDROID_ONLY')
       };
     }
 
@@ -70,11 +83,10 @@ export class BiometricService {
         enrolled: res.isEnrolled
       };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
       return {
         available: false,
         enrolled: false,
-        reason: msg
+        reason: this.languageService.instant('BIOMETRIC.STATUS_FAILED')
       };
     }
   }
@@ -84,16 +96,32 @@ export class BiometricService {
    */
   public async enroll(dek: Uint8Array): Promise<{ success: boolean; cancelled?: boolean; error?: string }> {
     if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
-      return { success: false, error: 'Platform not supported for biometric enrollment' };
+      return {
+        success: false,
+        error: this.languageService.instant('BIOMETRIC.ANDROID_ONLY'),
+      };
     }
 
     try {
       const tokenB64 = this.cryptoService.bytesToBase64(dek);
-      const res = await VaultSecurity.enrollBiometrics({ token: tokenB64 });
-      return res;
+      const res = await VaultSecurity.enrollBiometrics({
+        token: tokenB64,
+        promptTitle: this.languageService.instant('BIOMETRIC.ENROLL_TITLE'),
+        promptSubtitle: this.languageService.instant('BIOMETRIC.ENROLL_SUBTITLE'),
+        negativeButtonText: this.languageService.instant('COMMON.CANCEL'),
+      });
+      return {
+        success: res.success,
+        cancelled: res.cancelled,
+        error: res.errorCode === undefined
+          ? undefined
+          : this.languageService.instant(this.getAuthenticationErrorKey(res.errorCode)),
+      };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      return { success: false, error: msg };
+      return {
+        success: false,
+        error: this.languageService.instant('BIOMETRIC.ENROLL_FAILED'),
+      };
     }
   }
 
@@ -102,11 +130,18 @@ export class BiometricService {
    */
   public async unlock(): Promise<BiometricUnlockResult> {
     if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
-      return { success: false, error: 'Biometric unlock unavailable on current platform' };
+      return {
+        success: false,
+        error: this.languageService.instant('BIOMETRIC.ANDROID_ONLY'),
+      };
     }
 
     try {
-      const res = await VaultSecurity.unlockWithBiometrics();
+      const res = await VaultSecurity.unlockWithBiometrics({
+        promptTitle: this.languageService.instant('BIOMETRIC.UNLOCK_TITLE'),
+        promptSubtitle: this.languageService.instant('BIOMETRIC.UNLOCK_SUBTITLE'),
+        negativeButtonText: this.languageService.instant('BIOMETRIC.USE_MASTER_PASSWORD'),
+      });
       if (res.success && res.token) {
         const dek = this.cryptoService.base64ToBytes(res.token);
         return {
@@ -119,11 +154,42 @@ export class BiometricService {
         success: false,
         invalidated: res.invalidated,
         cancelled: res.cancelled,
-        error: res.error || 'Biometric authentication was not completed'
+        error: this.languageService.instant(
+          res.invalidated
+            ? 'BIOMETRIC.CREDENTIALS_CHANGED'
+            : res.errorCode === undefined
+              ? 'BIOMETRIC.AUTHENTICATION_FAILED'
+              : this.getAuthenticationErrorKey(res.errorCode),
+        ),
       };
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      return { success: false, error: msg };
+      return {
+        success: false,
+        error: this.languageService.instant('BIOMETRIC.UNLOCK_FAILED'),
+      };
+    }
+  }
+
+  private getAuthenticationErrorKey(errorCode: number): string {
+    switch (errorCode) {
+      case -1:
+        return 'BIOMETRIC.NOT_ENROLLED';
+      case -2:
+        return 'BIOMETRIC.PAYLOAD_CORRUPT';
+      case -3:
+        return 'BIOMETRIC.KEY_MISSING';
+      case -4:
+        return 'BIOMETRIC.CREDENTIALS_CHANGED';
+      case 7:
+      case 9:
+        return 'BIOMETRIC.AUTHENTICATION_LOCKED';
+      case 1:
+      case 12:
+        return 'BIOMETRIC.HARDWARE_UNAVAILABLE';
+      case 11:
+        return 'BIOMETRIC.NOT_ENROLLED';
+      default:
+        return 'BIOMETRIC.AUTHENTICATION_FAILED';
     }
   }
 
