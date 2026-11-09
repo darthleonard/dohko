@@ -1,0 +1,58 @@
+name: Build Dokho Android Bundle
+
+on: 
+  push:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build Dokho
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18.x
+
+      - name: Install Ionic
+        run: npm install -g @ionic/cli
+
+      - name: Install app dependencies
+        run: npm install
+
+      - name: Build Ionic project
+        run: ionic build
+
+      - name: Sync Android project
+        run: ionic capacitor sync android
+
+      - name: Generate bundle
+        working-directory: ./android/
+        run: ./gradlew bundleRelease
+        
+      - name: Sign bundle
+        uses: ilharp/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDir: ./android/app/build/outputs/bundle/release/
+          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
+          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          buildToolsVersion: 34.0.0
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: high-card
+          path: ${{steps.sign_app.outputs.signedFile}}
