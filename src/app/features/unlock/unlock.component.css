@@ -11,6 +11,8 @@
 .hero-icon {
   font-size: 72px;
   margin-bottom: 8px;
+  color: var(--ion-color-secondary, #D4AF37);
+  filter: drop-shadow(0 4px 10px rgba(212, 175, 55, 0.35));
 }
 
 .subtitle {

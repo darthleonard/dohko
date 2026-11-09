@@ -1,2 +1,117 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+// Dohko Theme - Inspired by Dohko of Libra
+// Colors: Deep Aegis Navy (#0A1F44) & Shield Gold (#D4AF37 / #E6C657)
+// Guardian discipline, wisdom, vigilance, and privacy protection.
+
+:root {
+  /** Primary - Dohko Deep Navy **/
+  --ion-color-primary: #0A1F44;
+  --ion-color-primary-rgb: 10, 31, 68;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #091b3c;
+  --ion-color-primary-tint: #233557;
+
+  /** Secondary - Dohko Libra Gold **/
+  --ion-color-secondary: #D4AF37;
+  --ion-color-secondary-rgb: 212, 175, 55;
+  --ion-color-secondary-contrast: #0A1F44;
+  --ion-color-secondary-contrast-rgb: 10, 31, 68;
+  --ion-color-secondary-shade: #bb9a30;
+  --ion-color-secondary-tint: #d8b74b;
+
+  /** Tertiary - Aegis Azure Accent **/
+  --ion-color-tertiary: #19456B;
+  --ion-color-tertiary-rgb: 25, 69, 107;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #163d5e;
+  --ion-color-tertiary-tint: #30587a;
+
+  /** Success **/
+  --ion-color-success: #2e7d32;
+  --ion-color-success-rgb: 46, 125, 50;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #286e2c;
+  --ion-color-success-tint: #438a47;
+
+  /** Warning **/
+  --ion-color-warning: #e65100;
+  --ion-color-warning-rgb: 230, 81, 0;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-contrast-rgb: 255, 255, 255;
+  --ion-color-warning-shade: #ca4700;
+  --ion-color-warning-tint: #e9621a;
+
+  /** Danger **/
+  --ion-color-danger: #c62828;
+  --ion-color-danger-rgb: 198, 40, 40;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #ae2323;
+  --ion-color-danger-tint: #cc3e3e;
+
+  /** Dark & Light neutral steps **/
+  --ion-color-dark: #07152d;
+  --ion-color-dark-rgb: 7, 21, 45;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #061328;
+  --ion-color-dark-tint: #202c42;
+
+  --ion-color-medium: #5c6b84;
+  --ion-color-medium-rgb: 92, 107, 132;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #515e74;
+  --ion-color-medium-tint: #6c7a90;
+
+  --ion-color-light: #f0f4f9;
+  --ion-color-light-rgb: 240, 244, 249;
+  --ion-color-light-contrast: #07152d;
+  --ion-color-light-contrast-rgb: 7, 21, 45;
+  --ion-color-light-shade: #d3d7db;
+  --ion-color-light-tint: #f2f5fa;
+
+  /** Custom Dohko brand variables **/
+  --dohko-gold: #D4AF37;
+  --dohko-gold-light: #F4E4A6;
+  --dohko-navy-dark: #0A1F44;
+  --dohko-navy-surface: #102A56;
+}
+
+/* Dark mode palette tuning for Dohko */
+@media (prefers-color-scheme: dark) {
+  body {
+    --ion-background-color: #081427;
+    --ion-background-color-rgb: 8, 20, 39;
+
+    --ion-text-color: #e4eaf3;
+    --ion-text-color-rgb: 228, 234, 243;
+
+    --ion-color-step-50: #0e1b2f;
+    --ion-color-step-100: #142238;
+    --ion-color-step-150: #1b2940;
+    --ion-color-step-200: #223149;
+    --ion-color-step-250: #293852;
+    --ion-color-step-300: #303f5a;
+    --ion-color-step-350: #374663;
+    --ion-color-step-400: #3e4e6c;
+    --ion-color-step-450: #465574;
+    --ion-color-step-500: #4d5c7d;
+    --ion-color-step-550: #546386;
+    --ion-color-step-600: #5c6b8f;
+    --ion-color-step-650: #6a789a;
+    --ion-color-step-700: #7b88a7;
+    --ion-color-step-750: #8c98b3;
+    --ion-color-step-800: #9da8bf;
+    --ion-color-step-850: #aeb8cb;
+    --ion-color-step-900: #bfc8d8;
+    --ion-color-step-950: #d0d8e4;
+
+    --ion-card-background: #0f213d;
+    --ion-item-background: #0f213d;
+    --ion-toolbar-background: #09172e;
+    --ion-tab-bar-background: #09172e;
+  }
+}
