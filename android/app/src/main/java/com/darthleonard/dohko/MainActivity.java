@@ -1,4 +1,4 @@
-package com.darthleonard.dokho;
+package com.darthleonard.dohko;
 
 import android.os.Bundle;
 import android.view.WindowManager;

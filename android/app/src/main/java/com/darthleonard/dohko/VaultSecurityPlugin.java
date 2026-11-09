@@ -1,4 +1,4 @@
-package com.darthleonard.dokho;
+package com.darthleonard.dohko;
 
 import android.content.Context;
 import android.os.Build;
