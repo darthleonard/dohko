@@ -139,7 +139,7 @@
     "LOCAL_DATABASE": "Local Database:",
     "DATABASE_ENCRYPTION": "Encrypted with SQLCipher (AES-256).",
     "KEY_DERIVATION": "Key Derivation:",
-    "KEY_DERIVATION_DETAILS": "Argon2id (64 MiB of memory, 16-byte random salt).",
+    "KEY_DERIVATION_DETAILS": "Argon2id (46 MiB of memory, 16-byte random salt).",
     "KEY_HIERARCHY": "Key Hierarchy:",
     "KEY_HIERARCHY_DETAILS": "256-bit DEK wrapped via AES-256-GCM.",
     "BIOMETRICS": "Biometrics:",
