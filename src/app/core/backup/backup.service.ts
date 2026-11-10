@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
-import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import {
   BACKUP_FORMAT_IDENTIFIER,
@@ -99,13 +99,16 @@ export class BackupService {
 
       // 6. Native Share or Web Download
       if (Capacitor.isNativePlatform()) {
-        const tempPath = `backups/${fileName}`;
+        const tempPath = fileName;
+        let fileCreated = false;
         try {
           await Filesystem.writeFile({
             path: tempPath,
             data: fileContent,
-            directory: Directory.Cache
+            directory: Directory.Cache,
+            encoding: Encoding.UTF8
           });
+          fileCreated = true;
 
           const uriResult = await Filesystem.getUri({
             path: tempPath,
@@ -121,11 +124,13 @@ export class BackupService {
 
           return fileName;
         } finally {
-          // Clean up temporary cache file
-          await Filesystem.deleteFile({
-            path: tempPath,
-            directory: Directory.Cache
-          }).catch(() => {});
+          if (fileCreated) {
+            // Clean up temporary cache file
+            await Filesystem.deleteFile({
+              path: tempPath,
+              directory: Directory.Cache
+            }).catch(() => {});
+          }
         }
       } else {
         // Web platform download fallback

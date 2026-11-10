@@ -180,7 +180,7 @@ export class CredentialRepository {
     await this.dbService.beginTransaction();
     try {
       // Clear existing records
-      await this.dbService.run('DELETE FROM credentials;');
+      await this.dbService.run('DELETE FROM credentials;', [], false);
 
       const insertSql = `
         INSERT INTO credentials (id, name, username, password, website_url, notes, created_at, updated_at)
@@ -188,16 +188,20 @@ export class CredentialRepository {
       `;
 
       for (const cred of credentials) {
-        await this.dbService.run(insertSql, [
-          cred.id,
-          cred.name,
-          cred.username,
-          cred.password,
-          cred.websiteUrl || null,
-          cred.notes || null,
-          cred.createdAt,
-          cred.updatedAt
-        ]);
+        await this.dbService.run(
+          insertSql,
+          [
+            cred.id,
+            cred.name,
+            cred.username,
+            cred.password,
+            cred.websiteUrl || null,
+            cred.notes || null,
+            cred.createdAt,
+            cred.updatedAt
+          ],
+          false
+        );
       }
 
       await this.dbService.commitTransaction();

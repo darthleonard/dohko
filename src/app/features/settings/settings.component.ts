@@ -27,6 +27,8 @@ import { AutoLockService } from '../../core/security/auto-lock.service';
 import { AppPrivacyService } from '../../core/security/app-privacy.service';
 import { ClipboardService } from '../../core/security/clipboard.service';
 import { BackupService } from '../../core/backup/backup.service';
+import { BackupValidator } from '../../core/backup/backup-validator';
+import { MAX_BACKUP_FILE_SIZE_BYTES } from '../../core/backup/backup-format';
 import { LanguageService } from '../../core/i18n/language.service';
 import { TranslatePipe } from '../../core/i18n/translate.pipe';
 
@@ -62,6 +64,7 @@ export class SettingsComponent implements OnInit {
     private appPrivacyService: AppPrivacyService,
     private clipboardService: ClipboardService,
     private backupService: BackupService,
+    private backupValidator: BackupValidator,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
@@ -339,18 +342,45 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  public async onFileSelected(event: any): Promise<void> {
-    const file = event.target.files?.[0];
+  public async onFileSelected(event: Event): Promise<void> {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) {
+      return;
+    }
+
+    const file = input.files?.[0];
     if (!file) {
       return;
     }
 
-    event.target.value = '';
+    input.value = '';
+
+    if (file.size > MAX_BACKUP_FILE_SIZE_BYTES) {
+      await this.showRestoreFailure(
+        new Error('Backup file exceeds maximum permitted size of 10 MB.')
+      );
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = async () => {
-      const content = reader.result as string;
+      const content = reader.result;
+      if (typeof content !== 'string') {
+        await this.showRestoreFailure(new Error('Backup file could not be read as text.'));
+        return;
+      }
+
+      try {
+        this.backupValidator.validateFileStructure(content);
+      } catch (err: unknown) {
+        await this.showRestoreFailure(err);
+        return;
+      }
+
       await this.promptForRestore(content);
+    };
+    reader.onerror = async () => {
+      await this.showRestoreFailure(new Error('Selected backup file could not be read.'));
     };
     reader.readAsText(file);
   }
@@ -397,9 +427,16 @@ export class SettingsComponent implements OnInit {
       await this.router.navigate(['/credentials']);
     } catch (err: unknown) {
       await loading.dismiss();
-      const msg = err instanceof Error ? err.message : String(err);
-      this.showToast(this.translate.instant('SETTINGS.RESTORE_FAILED', { message: msg }), 'danger');
+      await this.showRestoreFailure(err);
     }
+  }
+
+  private async showRestoreFailure(err: unknown): Promise<void> {
+    const message = err instanceof Error ? err.message : String(err);
+    await this.showToast(
+      this.translate.instant('SETTINGS.RESTORE_FAILED', { message }),
+      'danger'
+    );
   }
 
   public async onLockVaultNow(): Promise<void> {

@@ -267,9 +267,13 @@ export class DatabaseService {
   /**
    * Executes a statement that modifies data (INSERT, UPDATE, DELETE).
    */
-  public async run(statement: string, values: any[] = []): Promise<{ changes: number; lastId?: number }> {
+  public async run(
+    statement: string,
+    values: any[] = [],
+    transaction = true
+  ): Promise<{ changes: number; lastId?: number }> {
     this.assertOpen();
-    const res = await this.dbConnection!.run(statement, values);
+    const res = await this.dbConnection!.run(statement, values, transaction);
     return {
       changes: res.changes?.changes || 0,
       lastId: res.changes?.lastId
